@@ -1,0 +1,310 @@
+/* stylelint-disable no-descending-specificity */
+.has-global-padding > .ghostlabs-serendipity.alignfull {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.ghostlabs-serendipity {
+  list-style: none;
+  padding: 0;
+  position: relative;
+}
+.ghostlabs-serendipity.alignfull {
+  margin-right: auto;
+  margin-left: auto;
+}
+.ghostlabs-serendipity__gallery-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ghostlabs-serendipity__gallery-item a,
+.ghostlabs-serendipity__gallery-item .ghostlabs-serendipity__trigger {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@supports selector(:has(*)) {
+  .ghostlabs-serendipity__gallery-item a:focus-visible,
+  .ghostlabs-serendipity__gallery-item .ghostlabs-serendipity__trigger:focus-visible {
+    outline: none;
+  }
+}
+.ghostlabs-serendipity__gallery-item .ghostlabs-serendipity__focus-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  box-shadow: inset 0 0 0 2px #1e1e1e;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateZ(1px);
+}
+.ghostlabs-serendipity__gallery-item:has(:focus-visible) > .ghostlabs-serendipity__focus-ring {
+  opacity: 1;
+}
+.ghostlabs-serendipity__gallery-item .ghostlabs-serendipity__caption-band {
+  --caption-padding: 15px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: calc(var(--caption-padding) * 2.5) var(--caption-padding) var(--caption-padding);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0, rgba(0, 0, 0, 0.85) calc(100% - var(--caption-padding) * 2.5), rgba(0, 0, 0, 0) 100%);
+  color: #fff;
+  font-size: 14px;
+  pointer-events: none;
+}
+.ghostlabs-serendipity__gallery-item .ghostlabs-serendipity__trigger {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+.ghostlabs-serendipity__gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ghostlabs-serendipity__gallery-item--style-1 {
+  --caption-padding: 15px;
+}
+.ghostlabs-serendipity__gallery-item--style-1::after {
+  content: attr(data-caption);
+  content: attr(data-caption)/"";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(100% - var(--caption-padding) * 2);
+  padding: calc(var(--caption-padding) * 2.5) var(--caption-padding) var(--caption-padding);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0, rgba(0, 0, 0, 0.85) calc(100% - var(--caption-padding) * 2.5), rgba(0, 0, 0, 0) 100%);
+  color: #fff;
+  font-size: 14px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+.ghostlabs-serendipity__gallery-item--style-1[data-caption=""]::after, .ghostlabs-serendipity__gallery-item--style-1:not([data-caption])::after {
+  content: url(../icons/link-white.svg);
+  text-align: center;
+}
+.ghostlabs-serendipity__gallery-item--style-1:hover::after, .ghostlabs-serendipity__gallery-item--style-1:focus-within::after {
+  transform: translateY(0);
+  opacity: 1;
+}
+.ghostlabs-serendipity__gallery-item--style-1:hover img, .ghostlabs-serendipity__gallery-item--style-1:focus-within img {
+  transform: scale(1.05);
+  filter: brightness(0.8);
+}
+.ghostlabs-serendipity__gallery-item--style-1 img {
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+.ghostlabs-serendipity__gallery-item--style-2::before, .ghostlabs-serendipity__gallery-item--style-2::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  left: 0;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1;
+}
+.ghostlabs-serendipity__gallery-item--style-2::before {
+  top: 0;
+  transform: translateY(-100%);
+}
+.ghostlabs-serendipity__gallery-item--style-2::after {
+  bottom: 0;
+  transform: translateY(100%);
+}
+.ghostlabs-serendipity__gallery-item--style-2 .caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+.ghostlabs-serendipity__gallery-item--style-2:hover::before, .ghostlabs-serendipity__gallery-item--style-2:focus-within::before {
+  transform: translateY(-50%);
+}
+.ghostlabs-serendipity__gallery-item--style-2:hover::after, .ghostlabs-serendipity__gallery-item--style-2:focus-within::after {
+  transform: translateY(50%);
+}
+.ghostlabs-serendipity__gallery-item--style-2:hover .caption, .ghostlabs-serendipity__gallery-item--style-2:focus-within .caption {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+.ghostlabs-serendipity__gallery-item--style-2:hover img, .ghostlabs-serendipity__gallery-item--style-2:focus-within img {
+  transform: scale(1.1);
+}
+.ghostlabs-serendipity__gallery-item--style-2 img {
+  transition: transform 0.5s ease;
+}
+.ghostlabs-serendipity__gallery-item--style-3 {
+  perspective: 1000px;
+}
+.ghostlabs-serendipity__gallery-item--style-3 .caption-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+}
+.ghostlabs-serendipity__gallery-item--style-3 .caption {
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
+  transform: translateZ(-100px);
+  transition: transform 0.4s ease;
+  padding: 20px;
+  max-width: 80%;
+}
+.ghostlabs-serendipity__gallery-item--style-3:hover .caption-container, .ghostlabs-serendipity__gallery-item--style-3:focus-within .caption-container {
+  opacity: 1;
+}
+.ghostlabs-serendipity__gallery-item--style-3:hover .caption, .ghostlabs-serendipity__gallery-item--style-3:focus-within .caption {
+  transform: translateZ(0);
+}
+.ghostlabs-serendipity__gallery-item--style-3:hover img, .ghostlabs-serendipity__gallery-item--style-3:focus-within img {
+  transform: scale(1.2);
+  filter: blur(3px);
+}
+.ghostlabs-serendipity__gallery-item--style-3 img {
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+.ghostlabs-serendipity__gallery-item--style-5 {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+.ghostlabs-serendipity__gallery-item--style-5 .front,
+.ghostlabs-serendipity__gallery-item--style-5 .back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ghostlabs-serendipity__gallery-item--style-5 .front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+.ghostlabs-serendipity__gallery-item--style-5 .back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+  transform: rotateY(180deg);
+  text-align: center;
+}
+.ghostlabs-serendipity__gallery-item--style-5 .caption {
+  font-size: 16px;
+  color: #333;
+  max-width: 90%;
+}
+.ghostlabs-serendipity__gallery-item--style-5:hover .front, .ghostlabs-serendipity__gallery-item--style-5:focus-within .front {
+  transform: rotateY(180deg);
+}
+.ghostlabs-serendipity__gallery-item--style-5:hover .back, .ghostlabs-serendipity__gallery-item--style-5:focus-within .back {
+  transform: rotateY(0deg);
+}
+.ghostlabs-serendipity--gallery-loading {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  position: relative;
+  min-height: 400px; /* Prevent collapse during loading */
+  /* No-JS safety net: this class is rendered server-side to hide the
+     raw images on first paint (avoids the FOUC). JS normally removes it
+     well within the 3s delay below; if the gallery JS never runs
+     (disabled/blocked/errored), the fallback reveals the raw images
+     instead of leaving the gallery hidden forever. */
+  animation: gallery-fallback-reveal 0.3s ease-in-out 3s forwards;
+}
+.ghostlabs-serendipity--gallery-loading::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #666;
+  border-radius: 50%;
+  animation: gallery-spin 1s linear infinite, gallery-fallback-hide-spinner 0.3s ease-in-out 3s forwards;
+  z-index: 100;
+}
+.ghostlabs-serendipity--gallery-loading .ghostlabs-serendipity__gallery-item {
+  opacity: 0;
+  transition: none; /* Disable transitions during loading */
+  animation: gallery-fallback-reveal 0.3s ease-in-out 3s forwards;
+}
+.ghostlabs-serendipity--gallery-loaded {
+  opacity: 1;
+}
+.ghostlabs-serendipity--gallery-loaded .ghostlabs-serendipity__gallery-item {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+@keyframes gallery-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gallery-fallback-reveal {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes gallery-fallback-hide-spinner {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ghostlabs-serendipity__gallery-item--style-1,
+  .ghostlabs-serendipity__gallery-item--style-1 *, .ghostlabs-serendipity__gallery-item--style-1::before, .ghostlabs-serendipity__gallery-item--style-1::after, .ghostlabs-serendipity__gallery-item--style-2,
+  .ghostlabs-serendipity__gallery-item--style-2 *, .ghostlabs-serendipity__gallery-item--style-2::before, .ghostlabs-serendipity__gallery-item--style-2::after, .ghostlabs-serendipity__gallery-item--style-3,
+  .ghostlabs-serendipity__gallery-item--style-3 *, .ghostlabs-serendipity__gallery-item--style-3::before, .ghostlabs-serendipity__gallery-item--style-3::after, .ghostlabs-serendipity__gallery-item--style-5,
+  .ghostlabs-serendipity__gallery-item--style-5 *, .ghostlabs-serendipity__gallery-item--style-5::before, .ghostlabs-serendipity__gallery-item--style-5::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .ghostlabs-serendipity--gallery-loading::before {
+    /* Drop the infinite spin but keep the no-JS fallback that hides
+       the spinner once the gallery is revealed. */
+    animation: gallery-fallback-hide-spinner 0.01ms ease-in-out 3s forwards;
+  }
+  .ghostlabs-serendipity--gallery-loaded .ghostlabs-serendipity__gallery-item {
+    transition: none;
+  }
+}

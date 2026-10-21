@@ -1,0 +1,14 @@
+{
+	"name": "ghostlabs/serendipity-free",
+	"description": "A generative tiled photo gallery. Each composition partitions the available area into a unique mosaic, saved per breakpoint.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=8.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"GHOSTLABS\\SERENDIPITY\\": "inc/"
+		}
+	}
+}

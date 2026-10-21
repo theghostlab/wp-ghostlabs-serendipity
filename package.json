@@ -1,0 +1,21 @@
+{
+  "name": "ghostlabs-serendipity",
+  "version": "1.0.0",
+  "description": "A generative tiled photo gallery. Each composition partitions the available area into a unique mosaic, saved per breakpoint.",
+  "license": "GPL-2.0-or-later",
+  "author": "GhostLabs",
+  "scripts": {
+    "build": "pnpm run build:blocks && pnpm run build:js && pnpm run build:css",
+    "build:blocks": "wp-scripts build --config webpack.config.cjs --webpack-src-dir=src --output-path=build",
+    "build:js": "node esbuild.mjs",
+    "build:css": "node sass.mjs",
+    "lint:js": "wp-scripts lint-js",
+    "lint:css": "wp-scripts lint-style"
+  },
+  "devDependencies": {
+    "@wordpress/icons": "^11.8.0",
+    "@wordpress/scripts": "^30.22.0",
+    "esbuild": "^0.25.9",
+    "sass": "^1.93.3"
+  }
+}

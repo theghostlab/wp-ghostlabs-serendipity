@@ -1,0 +1,58 @@
+// "Already own Serendipity Deluxe?" — the way in for somebody who has bought it.
+
+// A single row until opened: the pitch below gets the weight, this gets a heading and a
+// button-shaped summary.
+//
+// 🔴 A native `<details>`, with no script. Since 2026-10-08 the panel explains the download,
+// upload and activate steps and does nothing itself; WordPress.org refused the in-place
+// upgrade it used to run. See `Render\UpgradePanel`.
+
+.ghostlabs-s-handoff__summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--ghostlabs-s-space-6);
+	cursor: pointer;
+	// The disclosure triangle. The button-shaped label already says it opens.
+	list-style: none;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--ghostlabs-s-accent);
+		outline-offset: var(--ghostlabs-s-space-2);
+		border-radius: var(--ghostlabs-s-radius-button);
+	}
+}
+
+.ghostlabs-s-upgrade .ghostlabs-s-handoff__heading {
+	margin: 0;
+	font-size: var(--ghostlabs-s-text-sm);
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--ghostlabs-s-ink);
+}
+
+.ghostlabs-s-handoff__region {
+	margin-block-start: var(--ghostlabs-s-space-6);
+}
+
+// ⚠️ Two classes: the column's own `.ghostlabs-s-upgrade p { margin: 0 }` is (0,1,1) and
+// silently beats a single class.
+.ghostlabs-s-upgrade .ghostlabs-s-handoff__sub {
+	margin: 0;
+	color: var(--ghostlabs-s-text);
+}
+
+// Two classes: `.wrap ol` reaches further than a single class, and the steps sit on the
+// panel's own rhythm.
+.ghostlabs-s-upgrade .ghostlabs-s-handoff__steps {
+	display: grid;
+	gap: var(--ghostlabs-s-space-3);
+	margin-block: var(--ghostlabs-s-space-4) 0;
+	margin-inline: var(--ghostlabs-s-space-6) 0;
+	padding: 0;
+	color: var(--ghostlabs-s-text);
+}

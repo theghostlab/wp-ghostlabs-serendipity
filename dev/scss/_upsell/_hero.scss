@@ -1,0 +1,120 @@
+// The brand hero — Upsell Page F3's wave band, as Cycle Block and Undercard ship it.
+
+// The gradient is a fill on the band itself, not part of any art: the wave is
+// the line texture only. Both images ship inside the plugin (guideline 7).
+
+.ghostlabs-s-hero {
+	position: relative;
+	overflow: hidden;
+	min-block-size: var(--ghostlabs-s-hero-min);
+	// The band overlaps the table below it by the sweep's foot, as the design
+	// draws it. A plain negative margin is fine in CSS; it is only the Penpot
+	// mock that could not express it.
+	margin-block: var(--ghostlabs-s-space-10) calc(var(--ghostlabs-s-space-3) * -1);
+	background-image: linear-gradient(180deg, var(--ghostlabs-s-primary-700) 0%, var(--ghostlabs-s-primary-400) 100%);
+	text-align: center;
+}
+
+.ghostlabs-s-hero__texture,
+.ghostlabs-s-hero__sweep {
+	position: absolute;
+	inset: 0;
+}
+
+.ghostlabs-s-hero__texture {
+	background-image: url(../images/upsell/wave-bg.svg);
+	background-position: center 42%;
+	background-size: cover;
+}
+
+// Full-bleed rather than a bottom strip: the sweep paints at its own ratio
+// anchored to the foot, and its transparent upper half is what lets the
+// gradient read through.
+
+// ⚠️ Its last band is painted in wp-admin's ground, #F0F0F1 — Cycle Block's
+// copy is #F3F4F6, its own app's ground. If this screen's background ever
+// changes, the asset has to change with it.
+.ghostlabs-s-hero__sweep {
+	background-image: url(../images/upsell/separator-gray.svg);
+	background-position: bottom center;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+}
+
+.ghostlabs-s-hero__copy {
+	position: relative;
+	padding: var(--ghostlabs-s-space-10) var(--ghostlabs-s-space-10) var(--ghostlabs-s-space-14);
+}
+
+// ⚠️ #E2D8F3, not the mock's #BFA8DD: the mock's color measures 3.04:1 against
+// the gradient's lower stop. axe cannot see this — it reads declared colors,
+// not the painted band behind them — so the free E2E spec samples the
+// pixels behind the copy.
+.ghostlabs-s-upgrade .ghostlabs-s-hero__eyebrow {
+	font-size: var(--ghostlabs-s-text-2xs);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--ghostlabs-s-primary-25);
+}
+
+.ghostlabs-s-upgrade .ghostlabs-s-hero__headline {
+	margin: 0.625rem 0 0;
+	font-size: var(--ghostlabs-s-text-hero);
+	font-weight: 700;
+	line-height: 1.25;
+	color: var(--ghostlabs-s-surface);
+}
+
+.ghostlabs-s-upgrade .ghostlabs-s-hero__sub {
+	max-inline-size: 45rem;
+	margin: var(--ghostlabs-s-space-3) auto 0;
+	font-size: var(--ghostlabs-s-text-base);
+	line-height: 1.625;
+	color: var(--ghostlabs-s-primary-25);
+}
+
+// White pill, purple ring. A dark ring loses against the gradient (2.4:1) and a
+// light one against the pill; the outer white ring puts white on the gradient
+// (6.5:1), which is what makes the focus state visible.
+.ghostlabs-s-hero__pill {
+	display: inline-block;
+	margin-block-start: var(--ghostlabs-s-space-6);
+	padding: 0.625rem var(--ghostlabs-s-space-12);
+	border: 0.125rem solid var(--ghostlabs-s-primary-400);
+	border-radius: var(--ghostlabs-s-radius-pill);
+	background: var(--ghostlabs-s-surface);
+	box-shadow: var(--ghostlabs-s-shadow-pill);
+	font-size: var(--ghostlabs-s-text-xl);
+	font-weight: 600;
+	text-decoration: none;
+	color: var(--ghostlabs-s-primary-500);
+	transition: color 150ms;
+
+	&:is(:hover, :focus) {
+		color: var(--ghostlabs-s-primary-400);
+	}
+
+	&:focus-visible {
+		outline: 0.25rem solid var(--ghostlabs-s-surface);
+		outline-offset: 0.125rem;
+	}
+}
+
+// A phone's width: the desktop padding and the 36px headline leave four words a line and a
+// pill that wraps its own label. The band stays the same shape, just tighter.
+@media (max-width: 40rem) {
+
+	.ghostlabs-s-hero__copy {
+		padding: var(--ghostlabs-s-space-8) var(--ghostlabs-s-space-5) var(--ghostlabs-s-space-12);
+	}
+
+	.ghostlabs-s-upgrade .ghostlabs-s-hero__headline {
+		font-size: var(--ghostlabs-s-text-xl);
+	}
+
+	.ghostlabs-s-hero__pill {
+		padding-inline: var(--ghostlabs-s-space-6);
+		font-size: var(--ghostlabs-s-text-base);
+	}
+}

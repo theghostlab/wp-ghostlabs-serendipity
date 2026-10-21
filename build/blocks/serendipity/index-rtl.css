@@ -1,0 +1,375 @@
+@charset "UTF-8";
+/* stylelint-disable no-descending-specificity */
+/**
+ * The following styles get applied inside the editor only.
+ *
+ * Replace them with your own styles or remove the file completely.
+ */
+.ghostlabs-serendipity-toolbar {
+  --ghostlabs-prime-color: #613b93;
+  border: 0;
+  border-radius: 0;
+  border-left: 1px solid #1e1e1e;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.ghostlabs-serendipity-toolbar .components-toolbar-button:hover span {
+  color: var(--ghostlabs-prime-color);
+}
+.ghostlabs-serendipity-toolbar .components-toolbar-button:hover svg {
+  fill: var(--ghostlabs-prime-color);
+}
+
+.serendipity-gallery-block {
+  position: relative;
+  border-radius: 4px;
+}
+.serendipity-gallery-block .ghostlabs-serendipity {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  cursor: default;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item .gallery-item-actions {
+  display: none;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item .remove-button.components-button {
+  background: #fff;
+  color: #1e1e1e;
+  border: 1px solid #1e1e1e;
+  border-radius: 2px;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item .remove-button.components-button:hover {
+  background: #f0f0f0;
+  color: #1e1e1e;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item .remove-button.components-button:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wp-admin-theme-color, #3858e9);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item:hover .gallery-item-actions, .serendipity-gallery-block .ghostlabs-serendipity__gallery-item:focus-within .gallery-item-actions {
+  display: block;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item:has(.dim) {
+  background-color: #000;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1::after {
+  content: attr(data-caption);
+  content: attr(data-caption)/"";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  padding: 37.5px 15px 15px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0, rgba(0, 0, 0, 0.85) calc(100% - 37.5px), rgba(0, 0, 0, 0) 100%);
+  color: #fff;
+  font-size: 14px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1[data-caption=""]::after, .serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1:not([data-caption])::after {
+  content: url(../../images/link-white.8b22bd8f.svg);
+  text-align: center;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1:hover::after {
+  transform: translateY(0);
+  opacity: 1;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1:hover img {
+  transform: scale(1.05);
+  filter: brightness(0.8);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-1 img {
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2::before, .serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  right: 0;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2::before {
+  top: 0;
+  transform: translateY(-100%);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2::after {
+  bottom: 0;
+  transform: translateY(100%);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2 .caption {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2:hover::before {
+  transform: translateY(-50%);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2:hover::after {
+  transform: translateY(50%);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2:hover .caption {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2:hover img {
+  transform: scale(1.1);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-2 img {
+  transition: transform 0.5s ease;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3 {
+  perspective: 1000px;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3 .caption-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3 .caption {
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
+  transform: translateZ(-100px);
+  transition: transform 0.4s ease;
+  padding: 20px;
+  max-width: 80%;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3:hover .caption-container {
+  opacity: 1;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3:hover .caption {
+  transform: translateZ(0);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3:hover img {
+  transform: scale(1.2);
+  filter: blur(3px);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-3 img {
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 .front,
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 .back {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 .front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 .back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+  transform: rotateY(-180deg);
+  text-align: center;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5 .caption {
+  font-size: 16px;
+  color: #333;
+  max-width: 90%;
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5:hover .front {
+  transform: rotateY(-180deg);
+}
+.serendipity-gallery-block .ghostlabs-serendipity__gallery-item--style-5:hover .back {
+  transform: rotateY(0deg);
+}
+.serendipity-gallery-block .ghostlabs-serendipity--gallery-loading {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  position: relative;
+  min-height: 400px; /* Prevent collapse during loading */
+}
+.serendipity-gallery-block .ghostlabs-serendipity--gallery-loading::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px -20px 0 0;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #666;
+  border-radius: 50%;
+  animation: gallery-spin 1s linear infinite;
+  z-index: 100;
+}
+.serendipity-gallery-block .ghostlabs-serendipity--gallery-loading .serendipity-gallery-block .ghostlabs-serendipity__gallery-item {
+  opacity: 0;
+  transition: none; /* Disable transitions during loading */
+}
+.serendipity-gallery-block .ghostlabs-serendipity--gallery-loaded {
+  opacity: 1;
+}
+.serendipity-gallery-block .ghostlabs-serendipity--gallery-loaded .serendipity-gallery-block .ghostlabs-serendipity__gallery-item {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+.serendipity-gallery-block__empty-gallery-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+  background: #f7f7f7;
+  min-height: 200px;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+.serendipity-gallery-block__empty-gallery-placeholder p {
+  color: #888;
+  font-size: 16px;
+}
+.serendipity-gallery-block__empty-gallery-placeholder .media-upload-control {
+  margin-top: 0;
+}
+.serendipity-gallery-block .media-upload-control {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+.serendipity-gallery-block .dim {
+  filter: blur(2px) saturate(0);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+  background-color: #000;
+}
+
+/**
+ * The device switcher's saved marking: a check badge on the glyph's bottom-right corner.
+ *
+ * Owner's pick, 2026-10-13 — Penpot → Serendipity → Toolbar — Saved Layout, direction B.
+ * It replaced a purple fill, which read as a pressed button and vanished under core's
+ * pressed square whenever the saved breakpoint was also the current one.
+ *
+ * A pseudo-element, so the toolbar's hover rule (it paints every `svg` with the brand
+ * color) leaves the badge alone. Core draws the pressed square on `::before` at
+ * `z-index: -1`, so `::after` sits above it; the glyph is 24px at (6, 12) in a 36×48
+ * button in both WordPress 6.7 and 7.1, and the badge is 12px at the glyph's (14, 14).
+ * The ring is the ground it sits on — white, or core's ink on the pressed square, where
+ * the badge also inverts — so it cuts cleanly out of the glyph either way.
+ *
+ * Decorative: the button's label already says "— layout saved".
+ */
+.ghostlabs-serendipity-toolbar .ghostlabs-serendipity-toolbar__device--saved::after {
+  content: "";
+  position: absolute;
+  top: 26px;
+  right: 20px;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Ccircle cx=%276%27 cy=%276%27 r=%276%27 fill=%27%23613b93%27/%3E%3Cpath d=%27M3.4 6.2L5.2 8L8.7 4.2%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E") center/12px no-repeat;
+  pointer-events: none;
+}
+.ghostlabs-serendipity-toolbar .ghostlabs-serendipity-toolbar__device--saved.is-pressed::after {
+  box-shadow: 0 0 0 2px #1e1e1e;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Ccircle cx=%276%27 cy=%276%27 r=%276%27 fill=%27%23fff%27/%3E%3Cpath d=%27M3.4 6.2L5.2 8L8.7 4.2%27 fill=%27none%27 stroke=%27%231e1e1e%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E");
+}
+
+/**
+ * The editor's upsell notice (`UpsellNotice`): core's `Notice`, with
+ * GhostLabs purple on its border and nowhere else. `#7446b0` is the
+ * marketing palette's primary-400, as on the free settings screen.
+ *
+ * Set through core's own custom property rather than `border-color`, so
+ * the notice keeps the border width and radius core gives it.
+ *
+ * ⚠️ The compound selector is load-bearing: `.components-notice` defines
+ * this property at the same specificity, so a bare class would be decided
+ * by stylesheet order. ⚠️ Unlayered: core's component styles are, and a
+ * layered rule loses to them. The E2E suite measures the border.
+ */
+.components-notice.ghostlabs-serendipity-upsell-notice {
+  --wp-components-notice-border-color: #7446b0;
+  margin: 0;
+}
+.components-notice.ghostlabs-serendipity-upsell-notice p {
+  margin: 0 0 8px;
+}
+.components-notice.ghostlabs-serendipity-upsell-notice p:last-child {
+  margin-bottom: 0;
+}
+
+/**
+ * A select holding a refused value (`RefusableSelect`), once the option
+ * has gone disabled.
+ *
+ * ⚠️ Set on the container, never the `<select>`: its color comes from an
+ * emotion rule at (0,3,0), so a rule on it loses silently; the chevron
+ * follows `currentColor`; the border reads a custom property.
+ *
+ * ⚠️ `#949494` is a floor: 3.03:1 on white, the lightest border that meets
+ * WCAG 1.4.11 for a control that still works. `#757575` text is 4.61:1.
+ * Color is emphasis, never the signal; the notice carries the meaning.
+ */
+.ghostlabs-serendipity-select--refused .components-input-control__container {
+  color: #757575;
+  --wp-components-color-gray-600: #949494;
+}
+
+/**
+ * `RefusableSelect`'s wrapper, standing in for the select core spaces.
+ *
+ * Core gives a `.components-base-control` that is a direct child of a
+ * panel a 16px bottom margin unless it is the last child. The wrapper is
+ * that child now, so it takes the same rule. Inside a `Spacer` (the
+ * Lightbox panel) it is not a direct child and adds nothing, as before.
+ */
+.components-panel__body > .ghostlabs-serendipity-refusable:not(:last-child) {
+  margin-bottom: 16px;
+}

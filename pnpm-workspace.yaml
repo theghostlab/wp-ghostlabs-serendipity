@@ -1,0 +1,16 @@
+# Which dependencies may run install scripts.
+#
+# pnpm refuses to install while any package's build is undecided (ERR_PNPM_IGNORED_BUILDS),
+# so every one that asks has to be answered here — and answered, not left as a placeholder
+# string, which pnpm treats as undecided too.
+#
+# esbuild is the only `true`: its postinstall fetches the platform binary the bundler
+# actually runs, so the build fails without it. The rest are optional native speedups or
+# polyfills nothing here uses, and denying them keeps a fresh clone reproducible on any
+# platform rather than dependent on a compiler being present.
+allowBuilds:
+  '@parcel/watcher': false
+  core-js: false
+  core-js-pure: false
+  esbuild: true
+  unrs-resolver: false

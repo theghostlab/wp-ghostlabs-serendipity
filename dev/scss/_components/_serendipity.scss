@@ -1,0 +1,427 @@
+/* stylelint-disable no-descending-specificity */
+.has-global-padding > .ghostlabs-serendipity.alignfull {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.ghostlabs-serendipity {
+
+	$self: &;
+
+	list-style: none;
+	padding: 0;
+	position: relative;
+	//width: 100%;
+
+	&.alignfull {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	&__gallery-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+
+		// The tile is a list item; what takes focus is the link or the trigger button
+		// inside it. Both fill the tile. The ring is not drawn on them: see __focus-ring.
+		a,
+		.ghostlabs-serendipity__trigger {
+			display: block;
+			width: 100%;
+			height: 100%;
+
+			// ⚠️ Only where the ring can replace it: the ring is shown with `:has()`, and a
+			// browser without it got no focus indicator at all (re-audit, 2026-10-17).
+			@supports selector(:has(*)) {
+				&:focus-visible {
+					outline: none;
+				}
+			}
+		}
+
+		// ⚠️ The focus ring is its own element, above everything a hover style paints. Drawn
+		// on the trigger, it sat under Split Reveal's and Zoom and Blur Focus's overlays and
+		// turned away with Card Flip's card, and its one color (#0073aa) was 1.3:1 on a
+		// mid-tone photograph (accessibility audit, 2026-10-16, #15). Two tones, inset — 2px
+		// white at the edge, 2px #1e1e1e inside it — read on any photograph and never touch
+		// the neighboring tile (owner's pick 3a A, 2026-10-17; Layout Studio's idiom).
+		// translateZ lifts it out of Card Flip's 3D plane.
+		.ghostlabs-serendipity__focus-ring {
+			position: absolute;
+			inset: 0;
+			z-index: 5;
+			box-sizing: border-box;
+			border: 2px solid #fff;
+			box-shadow: inset 0 0 0 2px #1e1e1e;
+			pointer-events: none;
+			opacity: 0;
+			transform: translateZ(1px);
+		}
+
+		&:has(:focus-visible) > .ghostlabs-serendipity__focus-ring {
+			opacity: 1;
+		}
+
+		// A tile that opens nothing shows its caption here, as real text, always: nothing in
+		// it takes focus, so a caption revealed on hover was never seen from a keyboard or a
+		// touch screen (#16; owner's pick 3c A). The Fade-Up backing, below.
+		.ghostlabs-serendipity__caption-band {
+			--caption-padding: 15px;
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 2;
+			padding: calc(var(--caption-padding) * 2.5) var(--caption-padding) var(--caption-padding);
+			background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0, rgba(0, 0, 0, 0.85) calc(100% - var(--caption-padding) * 2.5), rgba(0, 0, 0, 0) 100%);
+			color: #fff;
+			font-size: 14px;
+			pointer-events: none;
+		}
+
+		// A <button> dressed as the image it wraps: no chrome of its own, and the
+		// cursor a tile has always had.
+		.ghostlabs-serendipity__trigger {
+			padding: 0;
+			margin: 0;
+			border: 0;
+			background: none;
+			color: inherit;
+			font: inherit;
+			cursor: pointer;
+			appearance: none;
+		}
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		&--style-1 {
+			--caption-padding: 15px;
+
+			&::after {
+				// `/ ""`: the caption is already in the DOM (.caption), so the painted copy
+				// carries no text for assistive tech — it was read twice.
+				// ⚠️ The plain declaration first: a browser that cannot parse `/ ""` drops
+				// the whole declaration, and Fade-Up then painted no caption at all
+				// (re-audit, 2026-10-17). It keeps the plain one, and reads it twice.
+				content: attr(data-caption);
+				content: attr(data-caption) / "";
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: calc(100% - var(--caption-padding) * 2);
+				padding: calc(var(--caption-padding) * 2.5) var(--caption-padding) var(--caption-padding);
+				// ⚠️ 85% black across the whole caption, fading only above it. The old fade ran
+				// through the text: over a white sky the top of the first line sat on ~25% black,
+				// 2.78:1 (accessibility audit, 2026-10-16; owner's pick 3b B, 2026-10-17).
+				background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0, rgba(0, 0, 0, 0.85) calc(100% - var(--caption-padding) * 2.5), rgba(0, 0, 0, 0) 100%);
+				color: #fff;
+				font-size: 14px;
+				transform: translateY(100%);
+				transition: transform 0.3s ease;
+				opacity: 0;
+			}
+
+			&[data-caption=""],
+			&:not([data-caption]) {
+
+				&::after {
+					// ⚠️ Relative to the compiled CSS in assets/css/, not to this file: Sass copies
+					// url() through untouched. A wrong path 404s and the band still paints, empty.
+					content: url(../icons/link-white.svg);
+					text-align: center;
+				}
+			}
+
+			&:hover,
+			&:focus-within {
+
+				&::after {
+					transform: translateY(0);
+					opacity: 1;
+				}
+
+				img {
+					transform: scale(1.05);
+					filter: brightness(0.8);
+				}
+			}
+
+			img {
+				transition: transform 0.5s ease, filter 0.5s ease;
+			}
+		}
+
+		&--style-2 {
+
+			&::before,
+			&::after {
+				content: "";
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.7);
+				left: 0;
+				transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				z-index: 1;
+			}
+
+			&::before {
+				top: 0;
+				transform: translateY(-100%);
+			}
+
+			&::after {
+				bottom: 0;
+				transform: translateY(100%);
+			}
+
+			.caption {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: #fff;
+				font-size: 16px;
+				text-align: center;
+				opacity: 0;
+				transition: opacity 0.3s ease;
+				z-index: 2;
+			}
+
+			&:hover,
+			&:focus-within {
+
+				&::before {
+					transform: translateY(-50%);
+				}
+
+				&::after {
+					transform: translateY(50%);
+				}
+
+				.caption {
+					opacity: 1;
+					transition-delay: 0.2s;
+				}
+
+				img {
+					transform: scale(1.1);
+				}
+			}
+
+			img {
+				transition: transform 0.5s ease;
+			}
+		}
+
+		&--style-3 {
+			perspective: 1000px;
+
+			.caption-container {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: rgba(0, 0, 0, 0.6);
+				opacity: 0;
+				transition: opacity 0.4s ease;
+				z-index: 2;
+			}
+
+			.caption {
+				color: #fff;
+				font-size: 18px;
+				text-align: center;
+				transform: translateZ(-100px);
+				transition: transform 0.4s ease;
+				padding: 20px;
+				max-width: 80%;
+			}
+
+			&:hover,
+			&:focus-within {
+
+				.caption-container {
+					opacity: 1;
+				}
+
+				.caption {
+					transform: translateZ(0);
+				}
+
+				img {
+					transform: scale(1.2);
+					filter: blur(3px);
+				}
+			}
+
+			img {
+				transition: transform 0.5s ease, filter 0.5s ease;
+			}
+		}
+
+		&--style-5 {
+			perspective: 1000px;
+			transform-style: preserve-3d;
+
+			.front,
+			.back {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				backface-visibility: hidden;
+				transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			}
+
+			.front {
+				z-index: 2;
+				transform: rotateY(0deg);
+			}
+
+			.back {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: #f8f8f8;
+				transform: rotateY(180deg);
+				//padding: 20px;
+				text-align: center;
+			}
+
+			.caption {
+				font-size: 16px;
+				color: #333;
+				max-width: 90%;
+			}
+
+			&:hover,
+			&:focus-within {
+
+				.front {
+					transform: rotateY(180deg);
+				}
+
+				.back {
+					transform: rotateY(0deg);
+				}
+			}
+		}
+	}
+
+	&--gallery-loading {
+		opacity: 0;
+		transition: opacity 0.3s ease-in-out;
+		position: relative;
+		min-height: 400px; /* Prevent collapse during loading */
+
+		/* No-JS safety net: this class is rendered server-side to hide the
+		   raw images on first paint (avoids the FOUC). JS normally removes it
+		   well within the 3s delay below; if the gallery JS never runs
+		   (disabled/blocked/errored), the fallback reveals the raw images
+		   instead of leaving the gallery hidden forever. */
+		animation: gallery-fallback-reveal 0.3s ease-in-out 3s forwards;
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 40px;
+			height: 40px;
+			margin: -20px 0 0 -20px;
+			border: 3px solid #f3f3f3;
+			border-top: 3px solid #666;
+			border-radius: 50%;
+			animation: gallery-spin 1s linear infinite,
+				gallery-fallback-hide-spinner 0.3s ease-in-out 3s forwards;
+			z-index: 100;
+		}
+
+		#{$self}__gallery-item {
+			opacity: 0;
+			transition: none; /* Disable transitions during loading */
+			animation: gallery-fallback-reveal 0.3s ease-in-out 3s forwards;
+		}
+	}
+
+	&--gallery-loaded {
+		opacity: 1;
+
+		#{$self}__gallery-item {
+			opacity: 1;
+			transition: opacity 0.2s ease-in-out;
+		}
+	}
+}
+
+@keyframes gallery-spin {
+
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes gallery-fallback-reveal {
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes gallery-fallback-hide-spinner {
+
+	to {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.ghostlabs-serendipity__gallery-item {
+
+		&--style-1,
+		&--style-2,
+		&--style-3,
+		&--style-5 {
+
+			&,
+			*,
+			&::before,
+			&::after {
+				transition-duration: 0.01ms !important;
+				animation-duration: 0.01ms !important;
+			}
+		}
+	}
+
+	.ghostlabs-serendipity--gallery-loading::before {
+		/* Drop the infinite spin but keep the no-JS fallback that hides
+		   the spinner once the gallery is revealed. */
+		animation: gallery-fallback-hide-spinner 0.01ms ease-in-out 3s forwards;
+	}
+
+	.ghostlabs-serendipity--gallery-loaded .ghostlabs-serendipity__gallery-item {
+		transition: none;
+	}
+}

@@ -1,0 +1,86 @@
+// Tokens for Settings → Serendipity, free edition.
+
+// The screen is the portfolio's Upsell Page (Penpot → WordPress > Plugins → Upsell Page, F3),
+// so these are the GhostLabs marketing palette's values, in OKLCH, each with its hex so the
+// palette it came from can be checked by eye. Ported from Undercard's port of the same page.
+
+// ⚠️ Layered, and nothing else in this stylesheet is. Tokens are meant to be replaceable, so
+// they sit where an override can reach them. The component rules sit outside any layer:
+// core's wp-admin styles are unlayered, and an unlayered rule beats a layered one no matter
+// how specific the layered one is.
+
+@layer serendipity.tokens {
+
+	.ghostlabs-s-screen {
+		// Neutrals — Tailwind's gray scale, which the marketing palette uses.
+		--ghostlabs-s-ink: oklch(21.01% 0.0318 264.66); // #111827 gray-900
+		--ghostlabs-s-text: oklch(37.29% 0.0306 259.73); // #374151 gray-700
+		// ⚠️ A floor, not a preference: the free column's marks are graphical
+		// objects needing 3:1 (WCAG 1.4.11). gray-400 measured 2.54:1 in Cycle
+		// Block for a release; gray-500 is 4.83:1.
+		--ghostlabs-s-muted: oklch(55.1% 0.0234 264.36); // #6B7280 gray-500
+		// The edition badge's ink. ⚠️ Not gray-500: the Upsell Page mock draws the
+		// badge gray-500 on gray-100, which axe measured at 4.39:1 — under 4.5 for
+		// 10px text. One step darker clears it at 6.87:1.
+		--ghostlabs-s-muted-strong: oklch(44.61% 0.0263 256.8); // #4B5563 gray-600
+		--ghostlabs-s-border: oklch(92.76% 0.0058 264.53); // #E5E7EB gray-200
+		--ghostlabs-s-rule: oklch(96.7% 0.0029 264.54); // #F3F4F6 gray-100
+		--ghostlabs-s-subtle: oklch(98.46% 0.0017 247.84); // #F9FAFB gray-50
+		--ghostlabs-s-surface: oklch(100% 0 0); // #FFFFFF
+
+		// wp-admin's link blue, for focus rings on controls that are not ours to recolor.
+		--ghostlabs-s-accent: oklch(52.96% 0.1212 239.95); // #0073AA
+
+		// WordPress's own — not ours to invent.
+		--ghostlabs-s-wp-ink: oklch(25.19% 0.0115 237.14); // #1D2327
+
+		// GhostLabs purple.
+		// `primary-25` is not in the marketing palette, and deliberately so: it is
+		// the hero copy's color because `primary-50` (#BFA8DD) measures 3.04:1
+		// against the gradient's lower stop. Cycle Block ships this value.
+		--ghostlabs-s-primary-25: oklch(89.84% 0.038 302.45); // #E2D8F3
+		--ghostlabs-s-primary-300: oklch(57.26% 0.1485 301.91); // #895FC0
+		--ghostlabs-s-primary-400: oklch(50.02% 0.163 300.63); // #7446B0
+		--ghostlabs-s-primary-500: oklch(44.04% 0.1417 300.94); // #613A93
+		--ghostlabs-s-primary-700: oklch(26.41% 0.0754 301.72); // #2C1A43
+
+
+		// Shape and rhythm.
+		--ghostlabs-s-radius-card: 0.625rem; // 10px
+		--ghostlabs-s-radius-button: 0.375rem; // 6px
+		--ghostlabs-s-radius-notice: 0.5rem; // 8px
+		--ghostlabs-s-radius-pill: 999rem;
+		--ghostlabs-s-shadow-card: 0 0.75rem 2rem oklch(26.41% 0.0754 301.72 / 8%);
+		--ghostlabs-s-shadow-pill: 0 0.25rem 0.375rem oklch(0% 0 0 / 10%), 0 0 0 0.125rem var(--ghostlabs-s-surface);
+
+		--ghostlabs-s-space-1: 0.125rem;
+		--ghostlabs-s-space-2: 0.5rem;
+		--ghostlabs-s-space-3: 0.75rem;
+		--ghostlabs-s-space-4: 1rem;
+		--ghostlabs-s-space-5: 1.25rem;
+		--ghostlabs-s-space-6: 1.5rem;
+		--ghostlabs-s-space-7: 1.75rem;
+		--ghostlabs-s-space-8: 2rem;
+		--ghostlabs-s-space-10: 2.5rem;
+		--ghostlabs-s-space-12: 3rem;
+		--ghostlabs-s-space-14: 3.5rem;
+
+		--ghostlabs-s-text-2xs: 0.625rem; // 10px
+		--ghostlabs-s-text-xs: 0.75rem;
+		--ghostlabs-s-text-sm: 0.875rem;
+		--ghostlabs-s-text-base: 1rem;
+		--ghostlabs-s-text-lg: 1.125rem;
+		--ghostlabs-s-text-xl: 1.25rem;
+		--ghostlabs-s-text-title: 1.375rem; // 22px, the header band
+		--ghostlabs-s-text-hero: 2.25rem; // 36px
+
+		// wp-admin's own gutters, which the header band has to reach past to sit
+		// full-bleed: `.wrap`'s margin plus `#wpcontent`'s left padding.
+		--ghostlabs-s-wp-wrap-top: 0.625rem;
+		--ghostlabs-s-wp-wrap-right: 1.25rem;
+		--ghostlabs-s-wp-wrap-left: 1.375rem;
+
+		--ghostlabs-s-content-max: 75rem; // 1200px, the Upsell Page's card width
+		--ghostlabs-s-hero-min: 17.875rem; // 286px
+	}
+}

@@ -1,0 +1,88 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "ghostlabs/serendipity",
+	"version": "1.0.0",
+	"title": "Serendipity Gallery",
+	"category": "design",
+	"icon": "format-gallery",
+	"description": "A generative tiled photo gallery. Each composition partitions the available area into a unique mosaic, saved per breakpoint.",
+	"example": {},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		]
+	},
+	"attributes": {
+		"id": {
+			"type": "string",
+			"default": ""
+		},
+		"gap": {
+			"type": "string",
+			"default": "1px"
+		},
+		"minHeight": {
+			"type": "string",
+			"default": "720px"
+		},
+		"thumbnailSize": {
+			"type": "string",
+			"default": "medium"
+		},
+		"imageResolution": {
+			"type": "string",
+			"default": "large"
+		},
+		"rawImages": {
+			"type": "array",
+			"default": []
+		},
+		"hoverStyle": {
+			"type": "string",
+			"default": "style-1"
+		},
+		"lightbox": {
+			"type": "string",
+			"default": "own"
+		},
+		"layoutData": {
+			"type": "array",
+			"default": []
+		},
+		"mobileStackThumbnails": {
+			"type": "boolean",
+			"default": false
+		},
+		"carousel": {
+			"type": "boolean",
+			"default": false
+		},
+		"showCarouselCaptions": {
+			"type": "boolean",
+			"default": false
+		},
+		"autoplay": {
+			"type": "boolean",
+			"default": false
+		},
+		"autoplayDelay": {
+			"type": "number",
+			"default": 5
+		},
+		"controls": {
+			"type": "string",
+			"default": "dot-navigation"
+		},
+		"debug": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"textdomain": "ghostlabs-serendipity",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

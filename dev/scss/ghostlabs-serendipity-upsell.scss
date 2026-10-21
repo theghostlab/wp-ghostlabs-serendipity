@@ -1,0 +1,20 @@
+// Settings → Serendipity, free edition: the Upsell Page (Penpot → WordPress > Plugins → F3).
+
+// Organized as tokens, then components. There is no reset and no element layer: this is a
+// wp-admin screen, and core owns both.
+
+// ⚠️ Only the tokens are layered. Core's admin styles are unlayered, and an unlayered rule
+// beats a layered one before specificity is even consulted. Specificity stays minimal instead —
+// one class, or two where a core rule would otherwise overrule it, and a comment saying so.
+
+// Built twice, to the same path: by the paid tier folder's `build:sass` into free-only/assets/css/ for
+// a dev build, and in place by `build.sh --dist`. Enqueued by `FreeSettings::styles()` on this
+// screen only.
+
+@use "_upsell/tokens";
+@use "_upsell/screen";
+@use "_upsell/button";
+@use "_upsell/upgrade";
+@use "_upsell/handoff";
+@use "_upsell/hero";
+@use "_upsell/compare";

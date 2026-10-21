@@ -1,0 +1,52 @@
+// The settings screen's buttons — the Plugins library's `Button / Primary` and
+// `Button / Secondary`, as Cycle Block and Undercard ship them.
+
+.ghostlabs-s-button {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	gap: var(--ghostlabs-s-space-1);
+	padding: 0.625rem var(--ghostlabs-s-space-5);
+	border: 0;
+	border-radius: var(--ghostlabs-s-radius-button);
+	font-size: var(--ghostlabs-s-text-sm);
+	font-weight: 600;
+	line-height: 1.25;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 150ms, color 150ms;
+
+	&:focus-visible {
+		outline: 0.125rem solid var(--ghostlabs-s-primary-400);
+		outline-offset: 0.125rem;
+	}
+}
+
+.ghostlabs-s-button--primary {
+	background: var(--ghostlabs-s-primary-500);
+	color: var(--ghostlabs-s-surface);
+
+	&:is(:hover, :focus) {
+		background: var(--ghostlabs-s-primary-400);
+		color: var(--ghostlabs-s-surface);
+	}
+
+}
+
+.ghostlabs-s-button--secondary {
+	padding: var(--ghostlabs-s-space-2) var(--ghostlabs-s-space-5);
+	border: 0.125rem solid var(--ghostlabs-s-primary-400);
+	border-radius: var(--ghostlabs-s-radius-pill);
+	background: transparent;
+	color: var(--ghostlabs-s-primary-500);
+
+	&:hover {
+		background: oklch(from var(--ghostlabs-s-primary-25) l c h / 40%);
+	}
+}
+
+.ghostlabs-s-button--large {
+	padding: var(--ghostlabs-s-space-3) var(--ghostlabs-s-space-6);
+	font-size: var(--ghostlabs-s-text-base);
+}
