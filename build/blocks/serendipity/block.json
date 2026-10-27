@@ -32,10 +32,6 @@
       "type": "string",
       "default": "medium"
     },
-    "imageResolution": {
-      "type": "string",
-      "default": "large"
-    },
     "rawImages": {
       "type": "array",
       "default": []
@@ -55,26 +51,6 @@
     "mobileStackThumbnails": {
       "type": "boolean",
       "default": false
-    },
-    "carousel": {
-      "type": "boolean",
-      "default": false
-    },
-    "showCarouselCaptions": {
-      "type": "boolean",
-      "default": false
-    },
-    "autoplay": {
-      "type": "boolean",
-      "default": false
-    },
-    "autoplayDelay": {
-      "type": "number",
-      "default": 5
-    },
-    "controls": {
-      "type": "string",
-      "default": "dot-navigation"
     },
     "debug": {
       "type": "boolean",

@@ -216,9 +216,6 @@ const convertToPercentages = (
 		yPercent: ( rect.y / containerHeight ) * 100,
 		widthPercent: ( rect.width / containerWidth ) * 100,
 		heightPercent: ( rect.height / containerHeight ) * 100,
-
-		// Preserve any additional properties
-		...( rect.objectPosition && { objectPosition: rect.objectPosition } ),
 	} ) );
 };
 
@@ -246,9 +243,6 @@ const convertToPixels = (
 		y: ( rect.yPercent / 100 ) * containerHeight,
 		width: ( rect.widthPercent / 100 ) * containerWidth,
 		height: ( rect.heightPercent / 100 ) * containerHeight,
-
-		// Preserve additional properties
-		...( rect.objectPosition && { objectPosition: rect.objectPosition } ),
 	} ) );
 
 	return insetTiles( cells, containerWidth, containerHeight, gap );
@@ -270,8 +264,14 @@ const calculateContainerWidth = ( galleryContainer ) => {
 
 /**
  * Enhanced Serendipity with responsive saved layouts
- * @param {Element} galleryContainer
- * @param {Object}  options
+ *
+ * @param {Element}  galleryContainer
+ * @param {Object}   options
+ * @param {string}   options.gap
+ * @param {boolean}  options.debug
+ * @param {Function} options.paintTile `( item, rectangle )`, after each tile is placed: the tile,
+ *                                     and its saved rectangle where there is one. What an edition
+ *                                     draws on a tile from what it saved there; nothing by default.
  */
 export const Serendipity = (
 	galleryContainer,
@@ -284,6 +284,8 @@ export const Serendipity = (
 	const GAP = splitValueAndUnit( options.gap )[ 0 ] ?? 2;
 	const MIN_HEIGHT = '720px';
 	const DEBUG = options.debug;
+	const paintTile =
+		typeof options.paintTile === 'function' ? options.paintTile : null;
 
 	// Store the original container dimensions when layout was first calculated
 	let originalDimensions = null;
@@ -434,13 +436,7 @@ export const Serendipity = (
 				item.style.top = rect.y + 'px';
 				item.style.width = rect.width + 'px';
 				item.style.height = rect.height + 'px';
-
-				if ( rect?.objectPosition ) {
-					const img = item.querySelector( 'img' );
-					if ( img ) {
-						img.style.objectPosition = rect.objectPosition;
-					}
-				}
+				paintTile?.( item, savedPercentageLayout?.[ i ] );
 			}
 		} );
 

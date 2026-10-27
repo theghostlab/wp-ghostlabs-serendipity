@@ -5,18 +5,16 @@ declare(strict_types=1);
 namespace GHOSTLABS\SERENDIPITY\Config;
 
 use GHOSTLABS\SERENDIPITY\Patterns\FreePatterns;
-use GHOSTLABS\SERENDIPITY\Service\Capabilities;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * What each edition includes — declared once, so the surfaces that state it can agree.
  *
- * The free/paid line is stated on the settings screen's comparison table, in the readme and in
- * the editor's refusal copy, and enforced by `Service\Capabilities`. A sibling plugin's
- * restatements drifted three times before anybody noticed. So the facts live here, and tests
- * hold them in both directions: `TierMatrixTest` against `Capabilities` and the pattern
- * providers, `ReadmeTierClaimsTest` against `readme.txt`.
+ * The free/paid line is stated on the settings screen's comparison table and in the readme. A
+ * sibling plugin's restatements drifted three times before anybody noticed. So the facts live
+ * here, and tests hold them in both directions: `TierMatrixTest` against what the paid edition
+ * carries and the pattern providers, `ReadmeTierClaimsTest` against `readme.txt`.
  *
  * ## ⚠️ A fact registry, not a copy system
  *
@@ -25,10 +23,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * ## ⚠️ Quantities are modeled, not flattened to ✓/✗
  *
- * A value is `true`, `false` or a string stating how many, and every count is composed from
- * what already knows it (`Capabilities`, `FreePatterns`), never typed. The readme once said
- * "Two hover styles" while this table said one, because one counted None and one did not.
- * None is not a style; the count is of effects.
+ * A value is `true`, `false` or a string stating how many. A free count is composed from what
+ * already knows it (`FreePatterns`); a paid count is stated, because the free build does not
+ * carry what would know it, and `TierMatrixTest` holds it in the suite that can see both. The
+ * readme once said "Two hover styles" while this table said one, because one counted None and
+ * one did not. None is not a style; the count is of effects.
  *
  * ## ⚠️ Labels resolve at call time, and nothing here is memoized
  *
@@ -50,6 +49,9 @@ final class TierMatrix
      * suite that can see them.
      */
     private const PAID_PATTERN_COUNT = 12;
+
+    /** How many hover styles the paid edition renders in all, None not counted. Held like the above. */
+    private const PAID_HOVER_STYLE_COUNT = 4;
 
     /** The paid edition's customer-facing name. One accessor, so a rename is one file. */
     public static function paidEditionName(): string
@@ -74,7 +76,7 @@ final class TierMatrix
 
     public static function paidHoverStyleCount(): int
     {
-        return self::freeHoverStyleCount() + count( Capabilities::LICENSED_HOVER_STYLES );
+        return self::PAID_HOVER_STYLE_COUNT;
     }
 
     public static function freePatternCount(): int
@@ -91,20 +93,19 @@ final class TierMatrix
      * Every row, in the order the comparison table states them: what both editions have,
      * then what the paid one adds. The order is the shape of the argument.
      *
-     * `capability` is the gated slug a row sells, or null for a row both editions share.
-     * `free` and `paid` are `true`, `false`, or a count.
+     * `free` and `paid` are `true`, `false`, or a count. A row where they are the same is one
+     * both editions share.
      *
      * ⚠️ The column key is `paid`, not the edition's name. A key is not copy, and an
      * identifier spelling out another edition would be a leak in every file that touched it.
      *
-     * @return list<array{key: string, capability: ?string, label: string, free: bool|string, paid: bool|string}>
+     * @return list<array{key: string, label: string, free: bool|string, paid: bool|string}>
      */
     public static function capabilities(): array
     {
         return [
             [
                 'key'        => 'mosaic',
-                'capability' => null,
                 'label'      => __( 'Generative mosaic, composed fresh until you keep one', 'ghostlabs-serendipity' ),
                 'free'       => true,
                 'paid'       => true,
@@ -113,49 +114,42 @@ final class TierMatrix
                 // ⚠️ "three" is words, not a count, because it reads better and was the
                 // claims-checked wording. `TierMatrixTest` holds it to the Breakpoint enum.
                 'key'        => 'saved-layouts',
-                'capability' => null,
                 'label'      => __( 'Saved layouts at all three breakpoints', 'ghostlabs-serendipity' ),
                 'free'       => true,
                 'paid'       => true,
             ],
             [
                 'key'        => 'own-lightbox',
-                'capability' => null,
                 'label'      => __( 'Links your own lightbox plugin can pick up, or no links at all', 'ghostlabs-serendipity' ),
                 'free'       => true,
                 'paid'       => true,
             ],
             [
                 'key'        => 'hover-styles',
-                'capability' => Capabilities::HOVER_STYLES_EXTENDED,
                 'label'      => __( 'Hover styles', 'ghostlabs-serendipity' ),
                 'free'       => (string) self::freeHoverStyleCount(),
                 'paid'       => (string) self::paidHoverStyleCount(),
             ],
             [
                 'key'        => 'patterns',
-                'capability' => Capabilities::PATTERN_LIBRARY,
                 'label'      => __( 'Block patterns', 'ghostlabs-serendipity' ),
                 'free'       => (string) self::freePatternCount(),
                 'paid'       => (string) self::paidPatternCount(),
             ],
             [
                 'key'        => 'built-in-lightbox',
-                'capability' => Capabilities::BUILT_IN_LIGHTBOX,
                 'label'      => __( 'Built-in carousel lightbox, with captions and autoplay', 'ghostlabs-serendipity' ),
                 'free'       => false,
                 'paid'       => true,
             ],
             [
                 'key'        => 'layout-studio',
-                'capability' => Capabilities::LAYOUT_STUDIO,
                 'label'      => __( 'Layout Studio — drag the seams to resize tiles, drag one tile onto another to swap them', 'ghostlabs-serendipity' ),
                 'free'       => false,
                 'paid'       => true,
             ],
             [
                 'key'        => 'reframe',
-                'capability' => Capabilities::PAN_TILT,
                 'label'      => __( 'Reframe a photograph inside its tile', 'ghostlabs-serendipity' ),
                 'free'       => false,
                 'paid'       => true,

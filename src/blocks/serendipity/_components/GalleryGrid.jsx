@@ -5,6 +5,7 @@ import { Serendipity } from '../../../../dev/javascript/_lib/serendipity';
 import { speak } from '@wordpress/a11y';
 import { useEffect, useRef } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies
@@ -13,6 +14,7 @@ import GalleryItem from './GalleryItem';
 import { getAlignmentClass } from '../_lib/_utils';
 import { resolveComposition } from '../_lib/composition';
 import { tilePhotographName } from '../_lib/tileNames';
+import { FILTER } from '../_lib/editionHooks';
 
 /**
  * Gallery grid component that displays images in a responsive layout.
@@ -115,7 +117,10 @@ const GalleryGrid = ( {
 			// Re-read the ref rather than trusting the one this effect closed over: the
 			// timer has already waited, and the node may have gone in the meantime.
 			const gallery = galleryRef.current
-				? Serendipity( galleryRef.current, { gap } )
+				? Serendipity( galleryRef.current, {
+						gap,
+						paintTile: applyFilters( FILTER.PAINT_TILE, null ),
+				  } )
 				: null;
 
 			// `Serendipity()` answers undefined for a container with no items in it —

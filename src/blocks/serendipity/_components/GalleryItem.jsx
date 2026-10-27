@@ -4,7 +4,7 @@
 import { Button } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 import { closeSmall } from '@wordpress/icons';
-import { StylesElements } from '../_lib/stylesModel';
+import { hoverStyleFor, hoverStyleInEffect } from '../_lib/stylesModel';
 import { tilePhotographName } from '../_lib/tileNames';
 import {
 	GALLERY_ITEM_CLASS,
@@ -19,10 +19,14 @@ import {
  * @param {number}   props.index      - Index of the image in the gallery.
  * @param {Function} props.onRemove   - Called with the image, its index, and whether the button
  *                                      had focus (a keyboard press) when it was pressed.
- * @param {string}   props.hoverStyle - Style class for hover effect.
+ * @param {string}   props.hoverStyle - The block's hover style.
  * @return {JSX.Element} Gallery item component.
  */
 const GalleryItem = ( { image, index, onRemove, hoverStyle } ) => {
+	// What the site shows: a style this editor does not offer renders as Fade-Up, as it does there.
+	const style = hoverStyleInEffect( hoverStyle );
+	const Tile = hoverStyleFor( style )?.Tile;
+
 	const name = tilePhotographName( {
 		alt: image.alt,
 		caption: image.caption,
@@ -40,10 +44,19 @@ const GalleryItem = ( { image, index, onRemove, hoverStyle } ) => {
 
 	const classes = [
 		GALLERY_ITEM_SELECTOR.replace( /^\.+/, '' ),
-		`${ GALLERY_ITEM_CLASS }--${ hoverStyle }`,
+		`${ GALLERY_ITEM_CLASS }--${ style }`,
 	]
 		.filter( Boolean )
 		.join( ' ' );
+
+	const photograph = (
+		<img
+			src={ image.url }
+			alt={ image.alt || '' }
+			data-id={ image.id }
+			data-index={ index }
+		/>
+	);
 
 	return (
 		// A list item, focusable so the keyboard can reveal Remove and so Layout Studio's Pan &
@@ -55,29 +68,12 @@ const GalleryItem = ( { image, index, onRemove, hoverStyle } ) => {
 			data-caption={ image.caption || '' }
 			tabIndex={ 0 }
 		>
-			{ hoverStyle === 'style-5' ? (
-				<div className={ 'front' }>
-					<img
-						src={ image.url }
-						alt={ image.alt || '' }
-						data-id={ image.id }
-						data-index={ index }
-					/>
-				</div>
+			{ /* A style an edition adds draws its own markup around the photograph. */ }
+			{ Tile ? (
+				<Tile caption={ image.caption || '' }>{ photograph }</Tile>
 			) : (
-				<img
-					src={ image.url }
-					alt={ image.alt || '' }
-					data-id={ image.id }
-					data-index={ index }
-				/>
+				photograph
 			) }
-
-			<StylesElements
-				caption={ image.caption || '' }
-				image={ image }
-				style={ hoverStyle }
-			/>
 
 			{ /* Shown by editor.scss on :hover and :focus-within, never by React state, and placed
 			 * over the photograph's corner: see there. */ }

@@ -12,8 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Registers the plugin's block patterns, and the category they live in.
  *
  * Every edition registers its own set through a provider (see PatternProviderInterface),
- * so this class never names one. A provider that asks for a capability the build has not
- * been granted is skipped entirely rather than registered and degraded.
+ * so this class never names one, and registers whatever each provider offers.
  */
 final class PatternLibrary
 {
@@ -67,7 +66,7 @@ final class PatternLibrary
     }
 
     /**
-     * Every pattern this build is entitled to, keyed by name.
+     * Every pattern the providers offer, keyed by name.
      *
      * @return array<string, array<string, mixed>>
      */
@@ -76,14 +75,6 @@ final class PatternLibrary
         $patterns = [];
 
         foreach (self::$providers as $provider) {
-            $capability = $provider->capability();
-
-            // Settled, never asked: this runs on `init` for every request (see
-            // Capabilities::hasSettled).
-            if ($capability !== null && ! Capabilities::hasSettled($capability)) {
-                continue;
-            }
-
             foreach ($provider->patterns() as $name => $properties) {
                 $patterns[$name] = $properties + [
                     'categories' => [self::CATEGORY],

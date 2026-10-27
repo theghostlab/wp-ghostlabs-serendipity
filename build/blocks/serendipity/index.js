@@ -357,11 +357,7 @@ const convertToPercentages = (rectangles, containerWidth, containerHeight) => {
     xPercent: rect.x / containerWidth * 100,
     yPercent: rect.y / containerHeight * 100,
     widthPercent: rect.width / containerWidth * 100,
-    heightPercent: rect.height / containerHeight * 100,
-    // Preserve any additional properties
-    ...(rect.objectPosition && {
-      objectPosition: rect.objectPosition
-    })
+    heightPercent: rect.height / containerHeight * 100
   }));
 };
 
@@ -383,11 +379,7 @@ const convertToPixels = (rectangles, containerWidth, containerHeight, gap = 0) =
     x: rect.xPercent / 100 * containerWidth,
     y: rect.yPercent / 100 * containerHeight,
     width: rect.widthPercent / 100 * containerWidth,
-    height: rect.heightPercent / 100 * containerHeight,
-    // Preserve additional properties
-    ...(rect.objectPosition && {
-      objectPosition: rect.objectPosition
-    })
+    height: rect.heightPercent / 100 * containerHeight
   }));
   return insetTiles(cells, containerWidth, containerHeight, gap);
 };
@@ -401,8 +393,14 @@ const calculateContainerWidth = galleryContainer => {
 
 /**
  * Enhanced Serendipity with responsive saved layouts
- * @param {Element} galleryContainer
- * @param {Object}  options
+ *
+ * @param {Element}  galleryContainer
+ * @param {Object}   options
+ * @param {string}   options.gap
+ * @param {boolean}  options.debug
+ * @param {Function} options.paintTile `( item, rectangle )`, after each tile is placed: the tile,
+ *                                     and its saved rectangle where there is one. What an edition
+ *                                     draws on a tile from what it saved there; nothing by default.
  */
 const Serendipity = (galleryContainer, options = {
   gap: '2px',
@@ -414,6 +412,7 @@ const Serendipity = (galleryContainer, options = {
   const GAP = splitValueAndUnit(options.gap)[0] ?? 2;
   const MIN_HEIGHT = '720px';
   const DEBUG = options.debug;
+  const paintTile = typeof options.paintTile === 'function' ? options.paintTile : null;
 
   // Store the original container dimensions when layout was first calculated
   let originalDimensions = null;
@@ -524,12 +523,7 @@ const Serendipity = (galleryContainer, options = {
         item.style.top = rect.y + 'px';
         item.style.width = rect.width + 'px';
         item.style.height = rect.height + 'px';
-        if (rect?.objectPosition) {
-          const img = item.querySelector('img');
-          if (img) {
-            img.style.objectPosition = rect.objectPosition;
-          }
-        }
+        paintTile?.(item, savedPercentageLayout?.[i]);
       }
     });
     return rectangles;
@@ -803,6 +797,8 @@ const Serendipity = (galleryContainer, options = {
 };
 ;// external ["wp","a11y"]
 const external_wp_a11y_namespaceObject = window["wp"]["a11y"];
+;// external ["wp","hooks"]
+const external_wp_hooks_namespaceObject = window["wp"]["hooks"];
 ;// ./node_modules/.pnpm/@wordpress+icons@11.8.0_@types+react-dom@18.3.7_@types+react@18.3.31__@types+react@18.3_0f1ad27c37fbfbf6826a9d421e0363cc/node_modules/@wordpress/icons/build-module/library/close-small.mjs
 // packages/icons/src/library/close-small.tsx
 
@@ -811,272 +807,114 @@ var close_small_default = /* @__PURE__ */ (0,external_ReactJSXRuntime_namespaceO
 
 //# sourceMappingURL=close-small.mjs.map
 
-;// external "React"
-const external_React_namespaceObject = window["React"];
-;// ./src/blocks/serendipity/_components/LinkIcon.jsx
+;// ./src/blocks/serendipity/_lib/editionHooks.js
 
 
-const LinkIcon = () => {
-  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "32",
-    height: "32",
-    stroke: "currentColor",
-    fill: "none",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    strokeWidth: "2",
-    viewBox: "0 0 24 24",
-    "data-icon": "SvgLink",
-    "aria-hidden": "true",
-    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("path", {
-      d: "M10.8 17.8l-1.512 1.513L8.6 20A3.2 3.2 0 014 20m0 0a3.2 3.2 0 010-4.6l2.45-2.45L8.9 10.5a3.284 3.284 0 012.112-.975 3.231 3.231 0 012.188.675m.2-4.2l1.413-1.412L15.4 4A3.253 3.253 0 1120 8.6l-2.45 2.45-2.45 2.45a3.143 3.143 0 01-2.012 1A3.2 3.2 0 0111 14"
-    })
-  });
+
+/**
+ * Where an edition adds to the block's editor. The block is built once, from `shared/`, and
+ * ships to every edition, so it renders what every edition has and lets an edition's own
+ * script add the rest through these filters. A build that adds nothing — the free one — offers
+ * exactly what it renders.
+ *
+ * ⚠️ WordPress.org Guideline 5: a free build may not carry an option it withholds. This is how
+ * another edition's options stay out of it entirely (refused 2026-10-26).
+ */
+const FILTER = {
+  /** `( styles ) => styles` — `{ label, value, Tile? }`, see `_lib/stylesModel`. */
+  HOVER_STYLES: 'ghostlabs.serendipity.hoverStyles',
+  /** `( modes ) => modes` — `{ label, value, help, claims?, Settings? }`, see `_lib/lightboxModel`. */
+  LIGHTBOX_MODES: 'ghostlabs.serendipity.lightboxModes',
+  /** `( Control ) => Control` — the Hover Styles select, see `GalleryInspectorControls`. */
+  HOVER_STYLE_CONTROL: 'ghostlabs.serendipity.hoverStyleControl',
+  /** `( Control ) => Control` — the Lightbox select, see `GalleryInspectorControls`. */
+  LIGHTBOX_CONTROL: 'ghostlabs.serendipity.lightboxControl',
+  /** `( paint ) => paint` — `( item, rectangle )` after the canvas places a tile; see `Serendipity()`. */
+  PAINT_TILE: 'ghostlabs.serendipity.paintTile'
 };
-/* harmony default export */ const _components_LinkIcon = (LinkIcon);
-;// ./src/blocks/serendipity/_lib/capabilities.js
-/**
- * What this build is entitled to, as published by BlockFactory.
- *
- * The editor gate. It disables controls the build cannot use and says why, rather than
- * offering one that silently fails on save — but it is only ever a courtesy. Anything
- * the editor lets through is checked again when the attributes are validated, and again
- * when the block renders, so a value that reaches the database another way still
- * degrades rather than unlocking.
- *
- * Absent means not entitled. A build that published nothing gets the free feature set,
- * which is the safe direction for a global that any script could have failed to print.
- */
-const CAPABILITY = {
-  BUILT_IN_LIGHTBOX: 'built-in-lightbox',
-  HOVER_STYLES_EXTENDED: 'hover-styles-extended',
-  PAN_TILT: 'pan-tilt',
-  LAYOUT_STUDIO: 'layout-studio',
-  PATTERN_LIBRARY: 'pattern-library'
-};
+let instances = 0;
+const FILTERS = Object.values(FILTER);
 
 /**
- * @param {string} capability One of CAPABILITY.
- * @return {boolean} Whether this build may use it.
- */
-const hasCapability = capability => window.ghostlabsSerendipityCapabilities?.[capability] === true;
-;// ./src/blocks/serendipity/_lib/upgradeUrl.js
-/**
- * Where an upgrade link in the editor points — as PHP built it, or nowhere.
+ * Render again when an edition adds to one of these filters after the block rendered.
  *
- * 🔴 **No literal in JavaScript, and no fallback.** A hard-coded URL renders, resolves and
- * silently drops the attribution. The edition that sells something inlines a map of finished
- * URLs, one per surface, each carrying its own `from=` (`BlockFactory::publishCapabilities()`,
- * filled by the free edition's boot). This reads it. Where the map is absent — any edition with
- * nothing to sell — every surface gets `null`, and the caller renders no link.
- *
- * The block is built once and ships to both editions, which is why the URLs cannot live here.
+ * Load order between the block's script and an edition's is not guaranteed, so a filter can be
+ * added after the first render. `hookAdded` says so. Called once, by the block's edit function:
+ * everything below it reads the filters as it renders.
  */
-const UPSELL = {
-  HOVER_STYLE: 'editor-hover-style',
-  LIGHTBOX: 'editor-lightbox',
-  LAYOUT_STUDIO: 'editor-layout-studio'
+const useEditionFilters = () => {
+  const [, setVersion] = (0,external_wp_element_namespaceObject.useState)(0);
+  (0,external_wp_element_namespaceObject.useEffect)(() => {
+    const namespace = `ghostlabs-serendipity/edition-filters/${++instances}`;
+    const follow = hookName => {
+      if (FILTERS.includes(hookName)) {
+        setVersion(version => version + 1);
+      }
+    };
+    (0,external_wp_hooks_namespaceObject.addAction)('hookAdded', namespace, follow);
+    (0,external_wp_hooks_namespaceObject.addAction)('hookRemoved', namespace, follow);
+    return () => {
+      (0,external_wp_hooks_namespaceObject.removeAction)('hookAdded', namespace);
+      (0,external_wp_hooks_namespaceObject.removeAction)('hookRemoved', namespace);
+    };
+  }, []);
 };
-
-/**
- * @param {string} surface One of UPSELL.
- * @return {string|null} The finished URL, or null where PHP supplied none.
- */
-const upgradeUrl = surface => {
-  const url = window.ghostlabsSerendipityUpgrade?.urls?.[surface];
-  return typeof url === 'string' && url !== '' ? url : null;
-};
-
-/**
- * Whether this edition sells anything at all. A refusal without a map is a licensed edition
- * whose license is not active, and it says so rather than pitching the free edition's upgrade.
- *
- * @return {boolean} True where PHP inlined an upgrade map.
- */
-const sellsUpgrade = () => typeof window.ghostlabsSerendipityUpgrade?.urls === 'object' && window.ghostlabsSerendipityUpgrade.urls !== null;
 ;// ./src/blocks/serendipity/_lib/stylesModel.js
 
 
 
 
-
 /**
- * What a locked style renders as: `Capabilities::FREE_HOVER_STYLE`, applied by
- * `AttributeGate`. The stored value is kept.
+ * Fade-Up: the hover style every edition renders, and what a stored style this editor does not
+ * offer renders as (`Service\Serendipity::hoverStyle()`).
  */
-
-const FREE_STYLE = 'style-1';
+const FADE_UP = 'style-1';
 
 /**
- * The hover styles, and which of them a license buys.
- *
- * Two are free — none, and Fade-Up — and three are not. Since 2026-10-03 the locked three are
- * offered like any other and **answer the click** (the convention's Upsell select, register
- * § Upgrade prompts in the free build): the value never reaches the block, and a notice names
- * the choice and the style still in effect. They used to be disabled with the paid tier's name appended,
- * which refused the click and explained nothing.
+ * The hover styles every edition renders: None, and Fade-Up. An edition adds its own through
+ * `FILTER.HOVER_STYLES`, each with a `Tile` for its preview where it has markup of its own.
  *
  * ⚠️ **The labels resolve when asked, never at import.** This module is imported once, early;
- * a list built at module scope bakes in whichever locale loaded first, and the refusal notice
- * reads these names.
+ * a list built at module scope bakes in whichever locale loaded first.
  *
- * @return {Array<{label: string, value: string, licensed?: boolean}>} The styles, in order.
+ * @return {Array<{label: string, value: string, Tile?: Function}>} The styles, in order.
  */
-const styles = () => [{
+const hoverStyles = () => (0,external_wp_hooks_namespaceObject.applyFilters)(FILTER.HOVER_STYLES, [{
   label: (0,external_wp_i18n_namespaceObject.__)('None', 'ghostlabs-serendipity'),
   value: ''
 }, {
   label: (0,external_wp_i18n_namespaceObject.__)('Fade-Up', 'ghostlabs-serendipity'),
-  value: FREE_STYLE
-}, {
-  label: (0,external_wp_i18n_namespaceObject.__)('Split Reveal', 'ghostlabs-serendipity'),
-  value: 'style-2',
-  licensed: true
-}, {
-  label: (0,external_wp_i18n_namespaceObject.__)('Zoom and Blur Focus', 'ghostlabs-serendipity'),
-  value: 'style-3',
-  licensed: true
-}, {
-  label: (0,external_wp_i18n_namespaceObject.__)('Card Flip', 'ghostlabs-serendipity'),
-  value: 'style-5',
-  licensed: true
-}];
+  value: FADE_UP
+}]);
 
 /**
  * @param {string} value A hover style value.
- * @return {boolean} Whether this build may not use it.
+ * @return {Object|undefined} The style, where this editor offers it.
  */
-const isLockedHoverStyle = value => !hasCapability(CAPABILITY.HOVER_STYLES_EXTENDED) && styles().some(style => style.licensed && style.value === value);
+const hoverStyleFor = value => hoverStyles().find(style => style.value === value);
 
 /**
- * @param {string} value A hover style value.
- * @return {string} Its name, in the current locale.
- */
-const hoverStyleName = value => styles().find(style => style.value === value)?.label ?? value;
-
-/**
- * What the site actually shows for a stored style.
+ * What the gallery renders for a stored style: the stored one where this editor offers it, and
+ * Fade-Up for anything else, as the render does.
  *
- * @param {string} stored The block's hover style.
- * @return {string} The stored style, or Fade-Up where it is locked.
+ * @param {string|undefined} stored The block's hover style.
+ * @return {string} The style in effect.
  */
-const hoverRunning = stored => isLockedHoverStyle(stored) ? FREE_STYLE : stored;
+const hoverStyleInEffect = stored => {
+  const value = stored ?? '';
+  return hoverStyleFor(value) ? value : FADE_UP;
+};
 
 /**
- * Options for the SelectControl. Every style is offered; only the one just refused is
- * disabled, a beat after it was chosen (`useRefusal`).
- *
- * @param {string|null} refused The style currently refused, or null.
- * @return {Array<{label: string, value: string, disabled?: boolean}>} Select options.
+ * @return {Array<{label: string, value: string}>} Options for the SelectControl.
  */
-const hoverStyleOptions = (refused = null) => styles().map(({
+const hoverStyleOptions = () => hoverStyles().map(({
   label,
   value
-}) => value === refused && isLockedHoverStyle(value) ? {
-  label,
-  value,
-  disabled: true
-} : {
+}) => ({
   label,
   value
-});
-
-/**
- * The refusal, as words. Claims-checked 2026-10-03; the lapsed-license wording is new with
- * this build.
- *
- * ⚠️ **Naming what is still in effect is what keeps the control honest.** The field goes on
- * showing the author's pick, which the block does not have; nothing else on screen says so.
- *
- * @param {Object}  notice
- * @param {string}  notice.picked   The style chosen, or the locked one the block holds.
- * @param {string}  notice.running  What the site shows.
- * @param {boolean} notice.isStored True when the block itself holds a locked style — a
- *                                  downgraded block, or one locked style swapped for another.
- * @return {{title: string, lines: string[], url: string|null}} The notice's copy.
- */
-const hoverRefusalCopy = ({
-  picked,
-  running,
-  isStored
-}) => {
-  const sells = sellsUpgrade();
-  const title = sells ? (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of a hover style, e.g. "Card Flip". */
-  (0,external_wp_i18n_namespaceObject.__)('%s is a Serendipity Deluxe hover style.', 'ghostlabs-serendipity'), hoverStyleName(picked)) : (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of a hover style, e.g. "Card Flip". */
-  (0,external_wp_i18n_namespaceObject.__)('%s needs an active Serendipity Deluxe license.', 'ghostlabs-serendipity'), hoverStyleName(picked));
-  let outcome;
-  if (isStored) {
-    outcome = (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of the free hover style, "Fade-Up". */
-    (0,external_wp_i18n_namespaceObject.__)('This gallery keeps that setting; your site shows %s in its place.', 'ghostlabs-serendipity'), hoverStyleName(FREE_STYLE));
-  } else if (running === '') {
-    outcome = (0,external_wp_i18n_namespaceObject.__)('Your gallery still has no hover style — nothing changed.', 'ghostlabs-serendipity');
-  } else {
-    outcome = (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of a hover style, e.g. "Fade-Up". */
-    (0,external_wp_i18n_namespaceObject.__)('Your gallery still uses %s — nothing changed.', 'ghostlabs-serendipity'), hoverStyleName(running));
-  }
-  const lines = sells ? [(0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of the free hover style, "Fade-Up". */
-  (0,external_wp_i18n_namespaceObject.__)('Free includes %s.', 'ghostlabs-serendipity'), hoverStyleName(FREE_STYLE)), outcome] : [outcome];
-  return {
-    title,
-    lines,
-    url: upgradeUrl(UPSELL.HOVER_STYLE)
-  };
-};
-const StylesElements = ({
-  style,
-  caption
-}) => {
-  if (style === 'style-2') {
-    if (!caption?.length) {
-      return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: "caption",
-        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_LinkIcon, {})
-      });
-    }
-    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-      className: "caption",
-      children: caption
-    });
-  }
-  if (style === 'style-3') {
-    if (!caption?.length) {
-      return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: "caption-container",
-        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-          className: "caption",
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_LinkIcon, {})
-        })
-      });
-    }
-    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-      className: "caption-container",
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: "caption",
-        children: caption
-      })
-    });
-  }
-  if (style === 'style-5') {
-    if (!caption?.length) {
-      return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: "back",
-        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-          className: "caption",
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_LinkIcon, {})
-        })
-      });
-    }
-    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-      className: "back",
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: "caption",
-        children: caption
-      })
-    });
-  }
-  return '';
-};
+}));
 ;// ./src/blocks/serendipity/_lib/tileNames.js
 /**
  * The text of an HTML fragment. Parsed, never inserted: `DOMParser` runs no script.
@@ -1135,7 +973,7 @@ const tilePhotographName = ({
  * @param {number}   props.index      - Index of the image in the gallery.
  * @param {Function} props.onRemove   - Called with the image, its index, and whether the button
  *                                      had focus (a keyboard press) when it was pressed.
- * @param {string}   props.hoverStyle - Style class for hover effect.
+ * @param {string}   props.hoverStyle - The block's hover style.
  * @return {JSX.Element} Gallery item component.
  */
 
@@ -1145,6 +983,9 @@ const GalleryItem = ({
   onRemove,
   hoverStyle
 }) => {
+  // What the site shows: a style this editor does not offer renders as Fade-Up, as it does there.
+  const style = hoverStyleInEffect(hoverStyle);
+  const Tile = hoverStyleFor(style)?.Tile;
   const name = tilePhotographName({
     alt: image.alt,
     caption: image.caption,
@@ -1154,7 +995,13 @@ const GalleryItem = ({
   // Every tile's button said "Remove image", so a list of buttons was five of the same.
   const removeLabel = name ? (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the photograph's alt text, caption or file name. */
   (0,external_wp_i18n_namespaceObject.__)('Remove image: %s', 'ghostlabs-serendipity'), name) : (0,external_wp_i18n_namespaceObject.__)('Remove image', 'ghostlabs-serendipity');
-  const classes = [GALLERY_ITEM_SELECTOR.replace(/^\.+/, ''), `${GALLERY_ITEM_CLASS}--${hoverStyle}`].filter(Boolean).join(' ');
+  const classes = [GALLERY_ITEM_SELECTOR.replace(/^\.+/, ''), `${GALLERY_ITEM_CLASS}--${style}`].filter(Boolean).join(' ');
+  const photograph = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("img", {
+    src: image.url,
+    alt: image.alt || '',
+    "data-id": image.id,
+    "data-index": index
+  });
   return (
     /*#__PURE__*/
     // A list item, focusable so the keyboard can reveal Remove and so Layout Studio's Pan &
@@ -1165,24 +1012,10 @@ const GalleryItem = ({
       className: classes,
       "data-caption": image.caption || '',
       tabIndex: 0,
-      children: [hoverStyle === 'style-5' ? /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-        className: 'front',
-        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("img", {
-          src: image.url,
-          alt: image.alt || '',
-          "data-id": image.id,
-          "data-index": index
-        })
-      }) : /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("img", {
-        src: image.url,
-        alt: image.alt || '',
-        "data-id": image.id,
-        "data-index": index
-      }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(StylesElements, {
+      children: [Tile ? /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(Tile, {
         caption: image.caption || '',
-        image: image,
-        style: hoverStyle
-      }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
+        children: photograph
+      }) : photograph, /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
         className: "gallery-item-actions",
         children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
           className: "remove-button"
@@ -1374,9 +1207,11 @@ const withLayout = (layoutData, deviceType, layout) => layoutData.some(datum => 
 
 
 
+
 /**
  * Internal dependencies
  */
+
 
 
 
@@ -1475,7 +1310,8 @@ const GalleryGrid = ({
       // Re-read the ref rather than trusting the one this effect closed over: the
       // timer has already waited, and the node may have gone in the meantime.
       const gallery = galleryRef.current ? Serendipity(galleryRef.current, {
-        gap
+        gap,
+        paintTile: (0,external_wp_hooks_namespaceObject.applyFilters)(FILTER.PAINT_TILE, null)
       }) : null;
 
       // `Serendipity()` answers undefined for a container with no items in it —
@@ -1687,413 +1523,86 @@ const MediaUploadControl = ({
 
 
 /**
- * The Lightbox select's options. Mirrors the PHP enum of the same name.
+ * The lightbox modes every edition has. Mirrors the PHP enum of the same name.
  *
- * Four of these emit a plain anchor and let whatever lightbox the site already runs pick
- * the gallery up; the fifth opens the bundled carousel and is the only one that costs a
- * license.
+ * Three emit a plain anchor and let whatever lightbox the site already runs pick the gallery
+ * up, and one emits none. An edition adds a mode of its own through `FILTER.LIGHTBOX_MODES`.
  */
 const LIGHTBOX = {
   OWN: 'own',
   FILE: 'file',
   ATTACHMENT: 'attachment',
-  NONE: 'none',
-  BUILT_IN: 'builtin'
+  NONE: 'none'
 };
 const LIGHTBOX_DEFAULT = LIGHTBOX.OWN;
 
 /**
- * The modes, in the select's order, with names resolved when asked.
+ * The modes, in the select's order, with names and help resolved when asked.
  *
- * @return {Array<{label: string, value: string}>} The modes.
+ * A mode an edition adds may carry `claims( attributes )` — whether a block with no `lightbox`
+ * value asked for it some older way — and `Settings`, a component rendered under the select
+ * while the mode is chosen, handed `{ attributes, setAttributes }`.
+ *
+ * @return {Array<{label: string, value: string, help: string, claims?: Function, Settings?: Function}>} The modes.
  */
-const modes = () => [{
+const lightboxModes = () => (0,external_wp_hooks_namespaceObject.applyFilters)(FILTER.LIGHTBOX_MODES, [{
   label: (0,external_wp_i18n_namespaceObject.__)('Your lightbox plugin (default)', 'ghostlabs-serendipity'),
-  value: LIGHTBOX.OWN
+  value: LIGHTBOX.OWN,
+  help: (0,external_wp_i18n_namespaceObject.__)('Links each image to the full-size file and groups the gallery, so a lightbox plugin you already run can pick it up.', 'ghostlabs-serendipity')
 }, {
   label: (0,external_wp_i18n_namespaceObject.__)('Link to image file', 'ghostlabs-serendipity'),
-  value: LIGHTBOX.FILE
+  value: LIGHTBOX.FILE,
+  help: (0,external_wp_i18n_namespaceObject.__)('Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping.', 'ghostlabs-serendipity')
 }, {
   label: (0,external_wp_i18n_namespaceObject.__)('Link to attachment page', 'ghostlabs-serendipity'),
-  value: LIGHTBOX.ATTACHMENT
+  value: LIGHTBOX.ATTACHMENT,
+  help: (0,external_wp_i18n_namespaceObject.__)('Each image links to its attachment page.', 'ghostlabs-serendipity')
 }, {
   label: (0,external_wp_i18n_namespaceObject.__)('No link', 'ghostlabs-serendipity'),
-  value: LIGHTBOX.NONE
-}, {
-  label: (0,external_wp_i18n_namespaceObject.__)('Built-in carousel', 'ghostlabs-serendipity'),
-  value: LIGHTBOX.BUILT_IN
-}];
+  value: LIGHTBOX.NONE,
+  help: (0,external_wp_i18n_namespaceObject.__)('Images are not linked. Nothing happens on click.', 'ghostlabs-serendipity')
+}]);
 
 /**
  * @param {string} value A lightbox mode.
- * @return {boolean} Whether this build may not use it — only ever the carousel.
+ * @return {Object|undefined} The mode, where this editor offers it.
  */
-const isLockedLightbox = value => value === LIGHTBOX.BUILT_IN && !hasCapability(CAPABILITY.BUILT_IN_LIGHTBOX);
+const lightboxModeFor = value => lightboxModes().find(mode => mode.value === value);
 
 /**
- * What the site actually uses for a stored mode: a locked carousel renders as
- * `Lightbox::DEFAULT`, applied by `AttributeGate`. The stored value is kept.
+ * What the gallery uses: the stored mode where this editor offers it, and `LIGHTBOX_DEFAULT`
+ * for anything else, as the render does.
  *
- * @param {string} stored The block's lightbox mode.
+ * @param {Object} attributes The block's attributes.
  * @return {string} The mode in effect.
  */
-const lightboxRunning = stored => isLockedLightbox(stored) ? LIGHTBOX_DEFAULT : stored;
-
-/**
- * @param {string} value A lightbox mode.
- * @return {string} Its name, as the select shows it.
- */
-const lightboxName = value => modes().find(mode => mode.value === value)?.label ?? value;
-
-/**
- * Options for the SelectControl. Since 2026-10-03 the carousel is offered like any other mode
- * and **answers the click** (the convention's Upsell select): only once refused, a beat after
- * it was chosen, is it disabled. It stays the last option so the list does not reorder between
- * builds.
- *
- * @param {string|null} refused The mode currently refused, or null.
- * @return {Array<{label: string, value: string, disabled?: boolean}>} Select options.
- */
-const lightboxOptions = (refused = null) => modes().map(({
-  label,
-  value
-}) => value === refused && isLockedLightbox(value) ? {
-  label,
-  value,
-  disabled: true
-} : {
-  label,
-  value
-});
-
-/**
- * The refusal, as words. Claims-checked 2026-10-03; the lapsed-license wording is new with
- * this build.
- *
- * ⚠️ The "your lightbox plugin" line names `Lightbox::DEFAULT`, which is what `AttributeGate`
- * renders a locked carousel as. Change the default and this sentence changes with it.
- *
- * @param {Object}  notice
- * @param {string}  notice.running  The mode in effect.
- * @param {boolean} notice.isStored True when the block itself holds the carousel.
- * @return {{title: string, lines: string[], url: string|null}} The notice's copy.
- */
-const lightboxRefusalCopy = ({
-  running,
-  isStored
-}) => {
-  const sells = sellsUpgrade();
-  const outcome = isStored ? (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of a lightbox mode, e.g. "Your lightbox plugin". */
-  (0,external_wp_i18n_namespaceObject.__)('This gallery keeps that setting; your site uses “%s” in its place.', 'ghostlabs-serendipity'), (0,external_wp_i18n_namespaceObject.__)('Your lightbox plugin', 'ghostlabs-serendipity')) : (0,external_wp_i18n_namespaceObject.sprintf)(/* translators: %s: the name of a lightbox mode, e.g. "Link to image file". */
-  (0,external_wp_i18n_namespaceObject.__)('The Lightbox setting is still “%s” — nothing changed.', 'ghostlabs-serendipity'), lightboxName(running));
-  return sells ? {
-    title: (0,external_wp_i18n_namespaceObject.__)('The built-in carousel is in Serendipity Deluxe.', 'ghostlabs-serendipity'),
-    lines: [(0,external_wp_i18n_namespaceObject.__)('It opens each photograph in a carousel with captions and autoplay, and needs no lightbox plugin.', 'ghostlabs-serendipity'), outcome],
-    url: upgradeUrl(UPSELL.LIGHTBOX)
-  } : {
-    title: (0,external_wp_i18n_namespaceObject.__)('The built-in carousel needs an active Serendipity Deluxe license.', 'ghostlabs-serendipity'),
-    lines: [outcome],
-    url: null
-  };
+const lightboxInEffect = attributes => {
+  const lightbox = attributes?.lightbox;
+  if (!lightbox) {
+    const claimed = lightboxModes().find(mode => mode.claims?.(attributes ?? {}));
+    return claimed ? claimed.value : LIGHTBOX_DEFAULT;
+  }
+  return lightboxModeFor(lightbox) ? lightbox : LIGHTBOX_DEFAULT;
 };
+
+/**
+ * @return {Array<{label: string, value: string}>} Options for the SelectControl.
+ */
+const lightboxOptions = () => lightboxModes().map(({
+  label,
+  value
+}) => ({
+  label,
+  value
+}));
 
 /**
  * The help text under the select, which is where the mode earns its keep.
  *
- * @param {string} value The selected lightbox mode.
+ * @param {string} value A lightbox mode.
  * @return {string} Help text.
  */
-const lightboxHelp = value => {
-  switch (value) {
-    case LIGHTBOX.BUILT_IN:
-      return (0,external_wp_i18n_namespaceObject.__)('Opens the bundled carousel. Loads its own script and styles on pages that use it.', 'ghostlabs-serendipity');
-    case LIGHTBOX.ATTACHMENT:
-      return (0,external_wp_i18n_namespaceObject.__)('Each image links to its attachment page.', 'ghostlabs-serendipity');
-    case LIGHTBOX.NONE:
-      return (0,external_wp_i18n_namespaceObject.__)('Images are not linked. Nothing happens on click.', 'ghostlabs-serendipity');
-    case LIGHTBOX.FILE:
-      return (0,external_wp_i18n_namespaceObject.__)('Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping.', 'ghostlabs-serendipity');
-    default:
-      return (0,external_wp_i18n_namespaceObject.__)('Links each image to the full-size file and groups the gallery, so a lightbox plugin you already run can pick it up.', 'ghostlabs-serendipity');
-  }
-};
-;// ./src/blocks/serendipity/_lib/useRefusal.js
-
-
-/**
- * How long a locked option stays offered after it has been chosen.
- *
- * The field keeps the author's choice — a select that snaps back inside the same frame reads
- * as a dead control — and the option goes `disabled` once the beat is up, so the control ends
- * the interaction saying plainly that it is not on offer.
- *
- * ⚠️ ~100ms is a floor, not a target, and nothing in the suite enforces it. Below that a change
- * reads as simultaneous with the click, so the disable stops reading as an answer and starts
- * reading as "this was always unavailable". 200 leaves headroom for the native popup's closing
- * animation. Cycle Block measured it (2026-08-25); the E2E polls for the end state.
- */
-const REFUSAL_DELAY = 200;
-
-/**
- * The convention's Upsell select, as state: Penpot → WordPress > Plugins → *Upsell surfaces —
- * the convention*, pattern 1. Ported from Cycle Block's `CycleSettings`.
- *
- * 🔴 **The value never reaches the block.** A locked pick returns before `onChange` is called,
- * so `setAttributes` never sees it. That is the editor half; `AttributeGate` and the render are
- * the halves that survive this file being edited, and they clamp on read, so a stored value
- * survives a downgrade and works again after an upgrade.
- *
- * @param {Object}   args
- * @param {string}   args.stored   The block's own value.
- * @param {Function} args.isLocked Whether this build may not use a value.
- * @param {Function} args.onChange Writes an allowed value to the block.
- * @return {Object} What the select and its notice render from.
- */
-const useRefusal = ({
-  stored,
-  isLocked,
-  onChange
-}) => {
-  /**
-   * The locked value the author chose, which the field goes on showing.
-   *
-   * ⚠️ The *display*, never the block. While it is set the control shows a value the block
-   * does not have, and the only thing saying so is the notice — so the notice is not optional.
-   */
-  const [pending, setPending] = (0,external_wp_element_namespaceObject.useState)(null);
-
-  /**
-   * The one locked value currently refused, or null. **One, never a list**: an author who
-   * tried three styles to see what they were would otherwise be left with a control full of
-   * dead entries and no way to ask about any of them again.
-   */
-  const [refused, setRefused] = (0,external_wp_element_namespaceObject.useState)(null);
-
-  /**
-   * The one notice, or null: `{ picked, isStored }`. Seeded from the attribute, so a block
-   * that already holds a locked value — a downgraded site — is told on arrival rather than
-   * only if it happens to reopen the select.
-   */
-  const [notice, setNotice] = (0,external_wp_element_namespaceObject.useState)(() => isLocked(stored) ? {
-    picked: stored,
-    isStored: true
-  } : null);
-  const timer = (0,external_wp_element_namespaceObject.useRef)(null);
-
-  // The timeout outlives the component if the block is deselected inside the beat.
-  (0,external_wp_element_namespaceObject.useEffect)(() => () => clearTimeout(timer.current), []);
-
-  /**
-   * Whether the author reached the control with a pointer. ⚠️ Not `:focus-visible`: Chrome
-   * reports it true for a `<select>` after a plain mouse click. Observed directly instead.
-   */
-  const pointerDriven = (0,external_wp_element_namespaceObject.useRef)(false);
-
-  /**
-   * Let the field go once the offer is withdrawn, so it stops holding a focus ring around a
-   * value it no longer claims.
-   *
-   * 🔴 **Pointer authors only.** For a keyboard author the ring is their cursor: blurring
-   * sends focus to `<body>` and the next Tab restarts at the top of the document (WCAG 2.4.3).
-   *
-   * @param {HTMLSelectElement|null} field The select the author used.
-   */
-  const releaseFocus = field => {
-    if (!pointerDriven.current) {
-      return;
-    }
-    if (!field || field.ownerDocument.activeElement !== field) {
-      return;
-    }
-    field.blur();
-  };
-  const refuse = (value, field) => {
-    setPending(value);
-    // A block already holding a locked value is not running the one it holds either, so
-    // a locked-to-locked swap takes the downgraded wording.
-    setNotice({
-      picked: value,
-      isStored: isLocked(stored)
-    });
-    setRefused(null);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      setRefused(value);
-      releaseFocus(field);
-    }, REFUSAL_DELAY);
-  };
-  const handleChange = (value, extra) => {
-    // `SelectControl` hands the change event through its second argument. Only ever used
-    // to hand focus back (`releaseFocus`); without it, focus is simply left alone.
-    const field = extra?.event?.target ?? null;
-
-    // ⚠️ The value must not reach the block. See the docblock above.
-    if (isLocked(value)) {
-      refuse(value, field?.tagName === 'SELECT' ? field : null);
-      return;
-    }
-    clearTimeout(timer.current);
-    setPending(null);
-    setNotice(null);
-    setRefused(null);
-    onChange(value);
-  };
-  return {
-    value: pending ?? stored,
-    refused,
-    notice,
-    dismiss: () => setNotice(null),
-    onChange: handleChange,
-    // True only once the beat is up, so the click lands at full strength first.
-    showingRefused: refused !== null && pending === refused,
-    pointerHandlers: {
-      onPointerDownCapture: () => {
-        pointerDriven.current = true;
-      },
-      onKeyDownCapture: () => {
-        pointerDriven.current = false;
-      }
-    }
-  };
-};
-;// ./src/blocks/serendipity/_components/UpsellNotice.jsx
-
-
-
-/**
- * The convention's notice: a claim, the facts behind it, and one link.
- *
- * Core's `Notice`, with GhostLabs purple on its border and nowhere else
- * (`.ghostlabs-serendipity-upsell-notice` in `editor.scss`). ⚠️ The link carries no color of
- * its own: it inherits WordPress's blue and follows the site's admin color scheme.
- *
- * 🔴 **No fallback link.** `url` comes from the map PHP inlines; where it is null — any edition
- * with nothing to sell — the copy stands on its own and no link renders.
- *
- * @param {Object}      props
- * @param {string}      props.title      The claim, in bold.
- * @param {string[]}    props.lines      What is true, in plain text.
- * @param {string|null} props.url        The finished upgrade URL, or null.
- * @param {Function}    [props.onRemove] Dismisses it; omitted for a notice that stays.
- * @param {boolean}     [props.announce] Speak it politely. A refusal is announced, because
- *                                       the field displays a value the block does not have
- *                                       and a screen-reader user has no other signal. A
- *                                       standing panel notice is not.
- * @return {Element} The notice.
- */
-
-const UpsellNotice = ({
-  title,
-  lines,
-  url,
-  onRemove,
-  announce = true
-}) => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.Notice, {
-  className: "ghostlabs-serendipity-upsell-notice",
-  status: "info",
-  politeness: "polite",
-  isDismissible: typeof onRemove === 'function',
-  onRemove: onRemove
-  // The rendered children are separate nodes and a link; spoken as one sentence they
-  // read as one answer. An empty string is how core is told to say nothing at all.
-  ,
-  spokenMessage: announce ? [title, ...lines].join(' ') : '',
-  children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
-    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("strong", {
-      children: title
-    })
-  }), lines.length > 0 && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
-    children: lines.join(' ')
-  }), url && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
-    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.ExternalLink, {
-      href: url,
-      children: (0,external_wp_i18n_namespaceObject.__)('See Serendipity Deluxe', 'ghostlabs-serendipity')
-    })
-  })]
-});
-/* harmony default export */ const _components_UpsellNotice = (UpsellNotice);
-;// ./src/blocks/serendipity/_components/RefusableSelect.jsx
-
-
-
-
-
-/**
- * A select whose locked options answer the click (the convention's Upsell select).
- *
- * Every option is offered. Choosing a locked one leaves the block alone, keeps the pick in the
- * field, explains it in a notice that names what is still in effect, and disables that one
- * option a beat later. Choosing an allowed one writes it and clears everything. A block that
- * already holds a locked value shows the notice on arrival.
- *
- * ⚠️ Color is emphasis, never the signal (WCAG 1.4.1): the dimmed field is styling, and the
- * notice's words carry the meaning.
- *
- * @param {Object}   props
- * @param {string}   props.label    The control's label.
- * @param {string}   props.stored   The block's value.
- * @param {Function} props.options  `( refused ) => options`.
- * @param {Function} props.isLocked Whether this build may not use a value.
- * @param {Function} props.copy     `( notice ) => { title, lines, url }`.
- * @param {Function} props.onChange Writes an allowed value to the block.
- * @param {Function} [props.help]   `( value ) => help text`, for the value the block has.
- * @return {Element} The select, and its notice when there is one.
- */
-
-const RefusableSelect = ({
-  label,
-  stored,
-  options,
-  isLocked,
-  copy,
-  onChange,
-  help
-}) => {
-  const refusal = useRefusal({
-    stored,
-    isLocked,
-    onChange
-  });
-  const wrapper = (0,external_wp_element_namespaceObject.useRef)(null);
-
-  // ⚠️ Dismissing unmounts the notice's button with focus on it, and focus fell to <body>:
-  // the next Tab started from the top of the document (accessibility audit, 2026-10-16). It
-  // goes back to the field the notice was about.
-  const dismiss = () => {
-    refusal.dismiss();
-    wrapper.current?.querySelector('select')?.focus();
-  };
-
-  // ⚠️ One wrapper, carrying the panel's rhythm itself. Core spaces controls with a margin
-  // on a `.components-base-control` that is a DIRECT child of the panel; wrapping the select
-  // took that away and left the next control flush against it (measured 0px, 2026-10-11).
-  // `.ghostlabs-serendipity-refusable` in editor.scss gives the 16px back.
-  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)("div", {
-    className: "ghostlabs-serendipity-refusable",
-    ref: wrapper,
-    children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
-      ...refusal.pointerHandlers,
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.SelectControl, {
-        label: label,
-        className: refusal.showingRefused ? 'ghostlabs-serendipity-select--refused' : undefined,
-        value: refusal.value,
-        options: options(refusal.refused),
-        help: help ? help(stored) : undefined,
-        onChange: refusal.onChange,
-        __next40pxDefaultSize: true,
-        __nextHasNoMarginBottom: true
-      })
-    }), refusal.notice && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-      marginTop: 4,
-      marginBottom: 0,
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_UpsellNotice, {
-        ...copy(refusal.notice),
-        onRemove: dismiss
-      })
-    })]
-  });
-};
-/* harmony default export */ const _components_RefusableSelect = (RefusableSelect);
+const lightboxHelp = value => lightboxModeFor(value)?.help ?? lightboxModeFor(LIGHTBOX_DEFAULT).help;
 ;// ./src/blocks/serendipity/_lib/_blockUtils.js
 
 const hasLayout = ({
@@ -2188,6 +1697,55 @@ const setTarget = e => {
 
 
 
+
+/**
+ * The Hover Styles select every edition renders. An edition may replace it
+ * (`FILTER.HOVER_STYLE_CONTROL`); it is handed the same props.
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    The style in effect.
+ * @param {string}   props.stored   The block's own value.
+ * @param {Function} props.onChange Writes a style to the block.
+ * @param {Function} props.setAttributes Writes attributes, for a replacement that writes more.
+ * @return {JSX.Element} The select.
+ */
+
+const HoverStyleSelect = ({
+  value,
+  onChange
+}) => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.SelectControl, {
+  label: (0,external_wp_i18n_namespaceObject.__)('Hover Styles', 'ghostlabs-serendipity'),
+  value: value,
+  options: hoverStyleOptions(),
+  onChange: onChange,
+  __next40pxDefaultSize: true,
+  __nextHasNoMarginBottom: true
+});
+
+/**
+ * The Lightbox select every edition renders. An edition may replace it
+ * (`FILTER.LIGHTBOX_CONTROL`); it is handed the same props.
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    The mode in effect.
+ * @param {string}   props.stored   The block's own value, resolved as `lightboxInEffect()` does.
+ * @param {Function} props.onChange Writes a mode to the block.
+ * @param {Function} props.setAttributes Writes attributes, for a replacement that writes more.
+ * @return {JSX.Element} The select.
+ */
+const LightboxSelect = ({
+  value,
+  onChange
+}) => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.SelectControl, {
+  label: (0,external_wp_i18n_namespaceObject.__)('Lightbox', 'ghostlabs-serendipity'),
+  value: value,
+  options: lightboxOptions(),
+  help: lightboxHelp(value),
+  onChange: onChange,
+  __next40pxDefaultSize: true,
+  __nextHasNoMarginBottom: true
+});
+
 /**
  * Inspector controls component for the Gallery block.
  *
@@ -2197,10 +1755,10 @@ const setTarget = e => {
  * undone.
  *
  * @param {Object}   props                         - Component properties
- * @param {boolean}  props.carousel                - Legacy flag; superseded by props.lightbox
+ * @param {Object}   props.attributes              - The block's attributes, for what an edition adds
+ * @param {Function} props.setAttributes           - Writes attributes, for what an edition adds
  * @param {string}   props.lightbox                - Which lightbox a click opens
  * @param {Function} props.onLightbox              - Callback when the lightbox mode changes
- * @param {string}   props.controls                - Type of carousel controls to display
  * @param {string}   props.deviceType              - Current device type (mobile, tablet, desktop)
  * @param {string}   props.gap                     - Gap size between images
  * @param {string}   props.hoverStyle              - Style to apply on image hover
@@ -2213,53 +1771,34 @@ const setTarget = e => {
  * @param {Function} props.onRefreshLayout         - Callback to compose a new layout, left unsaved
  * @param {Function} props.onHoverStyle            - Callback when hover style changes
  * @param {Function} props.onThumbnailSize         - Callback when thumbnail size changes
- * @param {Function} props.onControls              - Callback when carousel controls change
  * @param {boolean}  props.debug
  * @param {string}   props.thumbnailSize           - The saved thumbnail size, what the control shows
- * @param {string}   props.imageResolution
- * @param {boolean}  props.showCarouselCaptions
- * @param {boolean}  props.autoplay                - Whether the carousel plays on its own
- * @param {number}   props.autoplayDelay           - Seconds per slide
- * @param {Function} props.onAutoplay              - Callback when autoplay is toggled
- * @param {Function} props.onAutoplayDelay         - Callback when the delay changes
  * @param {boolean}  props.mobileStackThumbnails
  * @param {Function} props.onMobileStackThumbnails
- * @param {Function} props.onImageResolution
- * @param {Function} props.onShowCarouselCaptions
  * @param {Function} props.onDebug
  * @return {JSX.Element} Inspector controls panel
  */
-
 const GalleryInspectorControls = ({
-  carousel,
-  controls,
+  attributes,
+  setAttributes,
   lightbox,
   onLightbox,
   debug,
   deviceType,
   gap,
-  imageResolution,
   thumbnailSize,
   hoverStyle,
   layoutData,
   imageCount,
   minHeight,
-  showCarouselCaptions,
-  autoplay,
-  autoplayDelay,
-  onAutoplay,
-  onAutoplayDelay,
   mobileStackThumbnails,
   onMobileStackThumbnails,
   onChangeGap,
   onChangeMinHeight,
-  onImageResolution,
   onSaveLayout,
   onRefreshLayout,
   onHoverStyle,
   onThumbnailSize,
-  onControls,
-  onShowCarouselCaptions,
   onDebug
 }) => {
   const gapValue = parseInt(gap, 10) || 1;
@@ -2278,20 +1817,14 @@ const GalleryInspectorControls = ({
     label: name,
     value: slug
   }));
-  const imageResolutions = imageSizes.map(({
-    slug,
-    name
-  }) => ({
-    label: name,
-    value: slug
-  })).filter(({
-    value
-  }) => value !== 'thumbnail');
 
   // From the attribute, not a constant: this used to start at 'medium' whatever the
   // block said, so a pattern inserted with 'large' showed Medium in the sidebar.
   const thumbnailSizeValue = thumbnailSize || 'medium';
-  const lightboxValue = lightbox || (carousel ? LIGHTBOX.BUILT_IN : LIGHTBOX_DEFAULT);
+  const lightboxValue = lightboxInEffect(attributes);
+  const LightboxSettings = lightboxModeFor(lightboxValue)?.Settings;
+  const HoverStyleControl = (0,external_wp_hooks_namespaceObject.applyFilters)(FILTER.HOVER_STYLE_CONTROL, HoverStyleSelect);
+  const LightboxControl = (0,external_wp_hooks_namespaceObject.applyFilters)(FILTER.LIGHTBOX_CONTROL, LightboxSelect);
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_blockEditor_namespaceObject.InspectorControls, {
     children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.PanelBody, {
       title: (0,external_wp_i18n_namespaceObject.__)('Layout Settings', 'ghostlabs-serendipity'),
@@ -2328,16 +1861,11 @@ const GalleryInspectorControls = ({
         onChange: onThumbnailSize,
         __next40pxDefaultSize: true,
         __nextHasNoMarginBottom: true
-      }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_RefusableSelect, {
-        label: (0,external_wp_i18n_namespaceObject.__)('Hover Styles', 'ghostlabs-serendipity'),
+      }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(HoverStyleControl, {
+        value: hoverStyleInEffect(hoverStyle),
         stored: hoverStyle,
-        options: hoverStyleOptions,
-        isLocked: isLockedHoverStyle,
-        copy: notice => hoverRefusalCopy({
-          ...notice,
-          running: hoverRunning(hoverStyle)
-        }),
-        onChange: onHoverStyle
+        onChange: onHoverStyle,
+        setAttributes: setAttributes
       }), deviceType === 'Mobile' ? /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
         marginTop: 6,
         children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.CheckboxControl, {
@@ -2383,95 +1911,113 @@ const GalleryInspectorControls = ({
       })]
     }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.PanelBody, {
       title: (0,external_wp_i18n_namespaceObject.__)('Lightbox Settings', 'ghostlabs-serendipity')
-      // Keyed off the stored value, which a refusal never writes: a block that holds
-      // the carousel opens here so its notice is seen; a refusal does not reopen it.
+      // A mode with settings of its own opens the panel, so they are seen.
       ,
-      initialOpen: lightboxValue === LIGHTBOX.BUILT_IN,
+      initialOpen: Boolean(LightboxSettings),
       children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
         marginTop: 8,
-        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_RefusableSelect, {
-          label: (0,external_wp_i18n_namespaceObject.__)('Lightbox', 'ghostlabs-serendipity'),
-          stored: lightboxValue,
-          options: lightboxOptions,
-          isLocked: isLockedLightbox,
-          copy: notice => lightboxRefusalCopy({
-            ...notice,
-            running: lightboxRunning(lightboxValue)
-          })
-          // The help describes the mode in effect: a locked carousel renders as
-          // "Your lightbox plugin", so explaining the carousel here would describe
-          // something this site does not do.
-          ,
-          help: value => lightboxHelp(lightboxRunning(value)),
-          onChange: onLightbox
+        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(LightboxControl, {
+          value: lightboxValue,
+          stored: lightbox || lightboxValue,
+          onChange: onLightbox,
+          setAttributes: setAttributes
         })
-      }), lightboxValue === LIGHTBOX.BUILT_IN && !isLockedLightbox(lightboxValue) && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_ReactJSXRuntime_namespaceObject.Fragment, {
-        children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-          marginTop: 6,
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.SelectControl, {
-            label: (0,external_wp_i18n_namespaceObject.__)('Image Resolution', 'ghostlabs-serendipity'),
-            help: (0,external_wp_i18n_namespaceObject.__)('The size each photograph opens at in the carousel.', 'ghostlabs-serendipity'),
-            value: imageResolution,
-            options: imageResolutions,
-            onChange: onImageResolution,
-            __next40pxDefaultSize: true,
-            __nextHasNoMarginBottom: true
-          })
-        }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-          marginTop: 6,
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.RadioControl, {
-            label: (0,external_wp_i18n_namespaceObject.__)('Carousel Controls', 'ghostlabs-serendipity'),
-            help: (0,external_wp_i18n_namespaceObject.__)('Choose which additional controls to display in the carousel.', 'ghostlabs-serendipity'),
-            selected: controls,
-            options: [{
-              label: (0,external_wp_i18n_namespaceObject.__)('Dot Navigation', 'ghostlabs-serendipity'),
-              value: 'dot-navigation'
-            }, {
-              label: (0,external_wp_i18n_namespaceObject.__)('Snap Display', 'ghostlabs-serendipity'),
-              value: 'snap-display'
-            }, {
-              label: (0,external_wp_i18n_namespaceObject.__)('None', 'ghostlabs-serendipity'),
-              value: 'none'
-            }],
-            onChange: onControls
-          })
-        }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-          marginTop: 3,
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.CheckboxControl, {
-            __nextHasNoMarginBottom: true,
-            label: (0,external_wp_i18n_namespaceObject.__)('Show carousel captions', 'ghostlabs-serendipity'),
-            help: (0,external_wp_i18n_namespaceObject.__)('Enable captions to be displayed on carousel', 'ghostlabs-serendipity'),
-            checked: showCarouselCaptions,
-            onChange: onShowCarouselCaptions
-          })
-        }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-          marginTop: 3,
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.CheckboxControl, {
-            __nextHasNoMarginBottom: true,
-            label: (0,external_wp_i18n_namespaceObject.__)('Play as a slideshow', 'ghostlabs-serendipity'),
-            help: (0,external_wp_i18n_namespaceObject.__)('Advance on its own until the visitor takes over. Ignored for anyone who has asked for reduced motion.', 'ghostlabs-serendipity'),
-            checked: autoplay,
-            onChange: onAutoplay
-          })
-        }), autoplay && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalSpacer, {
-          marginTop: 3,
-          children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.RangeControl, {
-            __nextHasNoMarginBottom: true,
-            label: (0,external_wp_i18n_namespaceObject.__)('Seconds per slide', 'ghostlabs-serendipity'),
-            value: autoplayDelay,
-            min: 2,
-            max: 15,
-            step: 1,
-            onChange: onAutoplayDelay
-          })
-        })]
+      }), LightboxSettings && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(LightboxSettings, {
+        attributes: attributes,
+        setAttributes: setAttributes
       })]
     })]
   });
 };
 /* harmony default export */ const _components_GalleryInspectorControls = (GalleryInspectorControls);
-;// ./src/blocks/serendipity/_components/LayoutStudioSeat.jsx
+;// ./src/blocks/serendipity/_lib/upgradeUrl.js
+/**
+ * Where an upgrade link in the editor points — as PHP built it, or nowhere.
+ *
+ * 🔴 **No literal in JavaScript, and no fallback.** A hard-coded URL renders, resolves and
+ * silently drops the attribution. The edition that sells something inlines a map of finished
+ * URLs, one per surface, each carrying its own `from=` (`BlockFactory::editorData()`, filled by
+ * the free edition's boot). This reads it. Where the map is absent — any edition with nothing
+ * to sell — every surface gets `null`, and the caller renders no link.
+ *
+ * The block is built once and ships to both editions, which is why the URLs cannot live here.
+ */
+const UPSELL = {
+  LAYOUT_STUDIO: 'editor-layout-studio'
+};
 
+/**
+ * @param {string} surface One of UPSELL.
+ * @return {string|null} The finished URL, or null where PHP supplied none.
+ */
+const upgradeUrl = surface => {
+  const url = window.ghostlabsSerendipityUpgrade?.urls?.[surface];
+  return typeof url === 'string' && url !== '' ? url : null;
+};
+
+/**
+ * Whether this edition sells anything at all.
+ *
+ * @return {boolean} True where PHP inlined an upgrade map.
+ */
+const sellsUpgrade = () => typeof window.ghostlabsSerendipityUpgrade?.urls === 'object' && window.ghostlabsSerendipityUpgrade.urls !== null;
+;// ./src/blocks/serendipity/_components/UpsellNotice.jsx
+
+
+
+/**
+ * The convention's notice: a claim, the facts behind it, and one link.
+ *
+ * Core's `Notice`, with GhostLabs purple on its border and nowhere else
+ * (`.ghostlabs-serendipity-upsell-notice` in `editor.scss`). ⚠️ The link carries no color of
+ * its own: it inherits WordPress's blue and follows the site's admin color scheme.
+ *
+ * 🔴 **No fallback link.** `url` comes from the map PHP inlines; where it is null — any edition
+ * with nothing to sell — the copy stands on its own and no link renders.
+ *
+ * @param {Object}      props
+ * @param {string}      props.title      The claim, in bold.
+ * @param {string[]}    props.lines      What is true, in plain text.
+ * @param {string|null} props.url        The finished upgrade URL, or null.
+ * @param {Function}    [props.onRemove] Dismisses it; omitted for a notice that stays.
+ * @param {boolean}     [props.announce] Speak it politely. A refusal is announced, because
+ *                                       the field displays a value the block does not have
+ *                                       and a screen-reader user has no other signal. A
+ *                                       standing panel notice is not.
+ * @return {Element} The notice.
+ */
+
+const UpsellNotice = ({
+  title,
+  lines,
+  url,
+  onRemove,
+  announce = true
+}) => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.Notice, {
+  className: "ghostlabs-serendipity-upsell-notice",
+  status: "info",
+  politeness: "polite",
+  isDismissible: typeof onRemove === 'function',
+  onRemove: onRemove
+  // The rendered children are separate nodes and a link; spoken as one sentence they
+  // read as one answer. An empty string is how core is told to say nothing at all.
+  ,
+  spokenMessage: announce ? [title, ...lines].join(' ') : '',
+  children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
+    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("strong", {
+      children: title
+    })
+  }), lines.length > 0 && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
+    children: lines.join(' ')
+  }), url && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
+    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.ExternalLink, {
+      href: url,
+      children: (0,external_wp_i18n_namespaceObject.__)('See Serendipity Deluxe', 'ghostlabs-serendipity')
+    })
+  })]
+});
+/* harmony default export */ const _components_UpsellNotice = (UpsellNotice);
+;// ./src/blocks/serendipity/_components/LayoutStudioSeat.jsx
 
 
 
@@ -2485,14 +2031,13 @@ const STUDIO_READY = 'ghostlabs-serendipity/studio-ready';
  * A seat for Layout Studio, which every edition renders and only one fills.
  *
  * The block is built once, from `shared/`, and ships to both editions — so the studio
- * cannot be imported here without putting the licensed editor into the free build. It
- * arrives instead as its own script, which the licensed edition enqueues and which
- * assigns itself to a global. This looks for it, and renders nothing when it is absent.
+ * cannot be imported here without putting it into the free build. It arrives instead as its
+ * own script, which the edition that has it enqueues and which assigns itself to a global.
+ * This looks for it and renders whatever it finds; what goes there, and when, is that
+ * edition's to decide.
  *
- * The capability is checked as well as the global, and deliberately not only the global:
- * a license that has lapsed since the page loaded, or a script served from a stale cache,
- * would otherwise hand the studio to a build that is no longer entitled to it. Absent
- * means not entitled — see `_lib/capabilities`.
+ * Where nothing fills it, an edition that sells an upgrade (`sellsUpgrade()`) gets the Upsell
+ * panel: a pointer to a feature whose code is not here. Every other renders nothing.
  *
  * @param {Object} props Passed straight through to the studio.
  * @return {Element|null} The studio, where there is one.
@@ -2510,36 +2055,36 @@ const LayoutStudioSeat = props => {
     window.addEventListener(STUDIO_READY, onReady);
     return () => window.removeEventListener(STUDIO_READY, onReady);
   }, [Studio]);
-  if (!Studio || !hasCapability(CAPABILITY.LAYOUT_STUDIO)) {
-    // Shown, not hidden: someone who never sees that seams and reframing exist has
-    // no reason to want them. One panel, closed by default because the inspector holds
-    // the controls the author came for (the convention's Upsell panel), and nothing
-    // else — no modal, no badge on the toolbar.
-    //
-    // ⚠️ The notice is not dismissible and says nothing aloud (`announce={ false }`):
-    // it is the panel's standing content, read when the author opens the panel, not a
-    // response to anything they did.
-    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_blockEditor_namespaceObject.InspectorControls, {
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.PanelBody, {
-        title: (0,external_wp_i18n_namespaceObject.__)('Layout Studio', 'ghostlabs-serendipity'),
-        initialOpen: false,
-        children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
-          children: (0,external_wp_i18n_namespaceObject.__)('Drag the seams between tiles to resize them, drag a photograph within its tile to reframe it, and drag one tile onto another to swap the two.', 'ghostlabs-serendipity')
-        }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_UpsellNotice, {
-          title: sellsUpgrade() ? (0,external_wp_i18n_namespaceObject.__)('Layout Studio is in Serendipity Deluxe.', 'ghostlabs-serendipity') : (0,external_wp_i18n_namespaceObject.__)('Layout Studio needs an active Serendipity Deluxe license.', 'ghostlabs-serendipity'),
-          lines: sellsUpgrade() ? [(0,external_wp_i18n_namespaceObject.__)('Your galleries and saved layouts carry over unchanged.', 'ghostlabs-serendipity')] : [],
-          url: upgradeUrl(UPSELL.LAYOUT_STUDIO),
-          announce: false
-        })]
-      })
+  if (Studio) {
+    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(Studio, {
+      ...props
     });
   }
+  if (!sellsUpgrade()) {
+    return null;
+  }
 
-  // Reframing is its own capability. Both are granted by the same license today, but
-  // the studio should not assume that — the split exists so the tiers can move.
-  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(Studio, {
-    ...props,
-    canReframe: hasCapability(CAPABILITY.PAN_TILT)
+  // Shown, not hidden: someone who never sees that seams and reframing exist has
+  // no reason to want them. One panel, closed by default because the inspector holds
+  // the controls the author came for (the convention's Upsell panel), and nothing
+  // else — no modal, no badge on the toolbar.
+  //
+  // ⚠️ The notice is not dismissible and says nothing aloud (`announce={ false }`):
+  // it is the panel's standing content, read when the author opens the panel, not a
+  // response to anything they did.
+  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_blockEditor_namespaceObject.InspectorControls, {
+    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.PanelBody, {
+      title: (0,external_wp_i18n_namespaceObject.__)('Layout Studio', 'ghostlabs-serendipity'),
+      initialOpen: false,
+      children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
+        children: (0,external_wp_i18n_namespaceObject.__)('Drag the seams between tiles to resize them, drag a photograph within its tile to reframe it, and drag one tile onto another to swap the two.', 'ghostlabs-serendipity')
+      }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_UpsellNotice, {
+        title: (0,external_wp_i18n_namespaceObject.__)('Layout Studio is in Serendipity Deluxe.', 'ghostlabs-serendipity'),
+        lines: [(0,external_wp_i18n_namespaceObject.__)('Your galleries and saved layouts carry over unchanged.', 'ghostlabs-serendipity')],
+        url: upgradeUrl(UPSELL.LAYOUT_STUDIO),
+        announce: false
+      })]
+    })
   });
 };
 /* harmony default export */ const _components_LayoutStudioSeat = (LayoutStudioSeat);
@@ -2728,23 +2273,21 @@ function Edit({
   const deviceType = (0,external_wp_data_namespaceObject.useSelect)(select => select('core/editor').getDeviceType());
   const {
     align,
-    carousel,
     lightbox,
-    controls,
     debug,
     id,
-    imageResolution,
     thumbnailSize,
     gap,
     hoverStyle,
     layoutData,
     minHeight,
     rawImages,
-    showCarouselCaptions,
-    mobileStackThumbnails,
-    autoplay,
-    autoplayDelay
+    mobileStackThumbnails
   } = attributes;
+
+  // What an edition adds to this editor arrives through filters, possibly after the first
+  // render. See `_lib/editionHooks`.
+  useEditionFilters();
   const [gallery, setGallery] = (0,external_wp_element_namespaceObject.useState)(null);
   const [aspectRatio, setAspectRatio] = (0,external_wp_element_namespaceObject.useState)('auto');
   const [, setLayoutSaved] = (0,external_wp_element_namespaceObject.useState)(isLayoutSaved({
@@ -2893,28 +2436,18 @@ function Edit({
   };
 
   /**
-   * The mode, and the legacy boolean older saved blocks still carry, kept in step rather
-   * than leaving a stale `true` behind for the render to resolve. One write, so one undo
-   * step: as two, undoing once left a block with the built-in carousel both on and off.
-   *
-   * @param {string} value One of LIGHTBOX.
+   * @param {string} value A lightbox mode, see `_lib/lightboxModel`.
    */
   const updateLightbox = value => {
-    writeAttributes({
-      lightbox: value,
-      carousel: value === LIGHTBOX.BUILT_IN
-    });
+    handleChange('lightbox', value);
   };
   const setDebug = value => {
     handleChange('debug', value);
   };
 
   /**
-   * Reframing and reordering used to live here, behind a 500ms long press on a tile.
-   * Both are Layout Studio's now, in the bundle the licensed edition enqueues, which
-   * is where they belong on two counts: they are paid features, and the block ships to
-   * every edition. The hold is gone with them; a drag starts immediately and the tile's
-   * own boundary decides whether it is a crop or a swap.
+   * Reordering and the rest of Layout Studio's gestures are not here: the block ships to
+   * every edition, and the studio is not every edition's (`LayoutStudioSeat`).
    */
 
   /**
@@ -2972,23 +2505,8 @@ function Edit({
   const updateMobileStackThumbnails = value => {
     handleChange('mobileStackThumbnails', value);
   };
-  const updateImageResolution = newSize => {
-    handleChange('imageResolution', newSize);
-  };
   const updateHoverStyle = newHoverStyle => {
     handleChange('hoverStyle', newHoverStyle);
-  };
-  const updateControls = newControls => {
-    handleChange('controls', newControls);
-  };
-  const updateShowCarouselCaptions = value => {
-    handleChange('showCarouselCaptions', value);
-  };
-  const updateAutoplay = value => {
-    handleChange('autoplay', value);
-  };
-  const updateAutoplayDelay = value => {
-    handleChange('autoplayDelay', value);
   };
 
   /**
@@ -3045,9 +2563,9 @@ function Edit({
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)("div", {
     ...blockProps,
     children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_GalleryInspectorControls, {
-      carousel: carousel,
+      attributes: attributes,
+      setAttributes: writeAttributes,
       lightbox: lightbox,
-      controls: controls,
       debug: debug,
       gap: gap,
       id: id,
@@ -3056,16 +2574,9 @@ function Edit({
       imageCount: rawImages.length,
       hoverStyle: hoverStyle,
       minHeight: minHeight,
-      imageResolution: imageResolution,
       thumbnailSize: thumbnailSize,
-      showCarouselCaptions: showCarouselCaptions,
-      autoplay: autoplay,
-      autoplayDelay: autoplayDelay,
-      onAutoplay: updateAutoplay,
-      onAutoplayDelay: updateAutoplayDelay,
       mobileStackThumbnails: mobileStackThumbnails,
       onMobileStackThumbnails: updateMobileStackThumbnails,
-      onImageResolution: updateImageResolution,
       onChangeGap: updateGap,
       onChangeMinHeight: updateMinHeight,
       onSaveLayout: saveLayout,
@@ -3073,8 +2584,6 @@ function Edit({
       onThumbnailSize: updateThumbnailSize,
       onHoverStyle: updateHoverStyle,
       onLightbox: updateLightbox,
-      onControls: updateControls,
-      onShowCarouselCaptions: updateShowCarouselCaptions,
       onDebug: setDebug
     }, 'ghostlabs-serendipity-gallery-inspector-controls'), rawImages.length > 0 ? /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_ReactJSXRuntime_namespaceObject.Fragment, {
       children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(_components_GalleryGrid, {

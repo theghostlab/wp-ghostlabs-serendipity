@@ -6,11 +6,10 @@ import { loadEnhancement } from './_lib/enhancement';
  * The gallery. Every edition ships this: the mosaic layout, the resize
  * handling, and a click that follows the anchor the render already emitted.
  *
- * The built-in carousel is not here and must not be. It is a paid feature, and a
- * free build has to load neither it nor its carousel library — so instead of
- * importing one, this file *offers a seat* for it. An enhancement bundle assigns
- * `window.GhostLabsSerendipity.galleryClickHandler`, and the delegating handler
- * below picks it up.
+ * A lightbox an edition adds of its own is not here and must not be: a free build
+ * carries no part of it. Instead this file *offers a seat*. An enhancement bundle
+ * assigns `window.GhostLabsSerendipity.galleryClickHandler`, and the delegating
+ * handler below picks it up.
  *
  * The lookup happens at click time, not at bind time, so neither bundle has to load
  * before the other. With nothing registered, a click follows the link — which is
@@ -230,13 +229,17 @@ const ghostLabsSerendipity = () => {
 		}
 
 		// The enhancement exists but has not been fetched yet: this click is the one
-		// that fetches it. Only for a gallery the render resolved to the built-in mode
-		// — any other gallery has nothing waiting for it and keeps the behavior below.
+		// that fetches it. Only for a gallery the render resolved to the mode the seat
+		// serves — any other gallery has nothing waiting for it and keeps the behavior below.
 		// The event object survives the wait: the handler reads its target, and the
 		// tile has no default action left to prevent once the browser has moved on.
 		const seat = window.GhostLabsSerendipity?.enhancement;
 
-		if ( seat?.script && gallery.dataset.lightbox === 'builtin' ) {
+		if (
+			seat?.script &&
+			seat.lightbox &&
+			gallery.dataset.lightbox === seat.lightbox
+		) {
 			e.preventDefault();
 
 			loadEnhancement( seat ).then( () => {

@@ -38,15 +38,15 @@ msgstr ""
 msgid "https://theghostlab.io"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:57
+#: inc/Config/TierMatrix.php:59
 msgid "Serendipity Deluxe"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:66
+#: inc/Config/TierMatrix.php:68
 msgid "Deluxe"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:108
+#: inc/Config/TierMatrix.php:109
 msgid "Generative mosaic, composed fresh until you keep one"
 msgstr ""
 
@@ -54,79 +54,79 @@ msgstr ""
 msgid "Saved layouts at all three breakpoints"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:124
+#: inc/Config/TierMatrix.php:123
 msgid "Links your own lightbox plugin can pick up, or no links at all"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:131
+#: inc/Config/TierMatrix.php:129
 msgid "Hover styles"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:138
+#: inc/Config/TierMatrix.php:135
 msgid "Block patterns"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:145
+#: inc/Config/TierMatrix.php:141
 msgid "Built-in carousel lightbox, with captions and autoplay"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:152
+#: inc/Config/TierMatrix.php:147
 msgid "Layout Studio — drag the seams to resize tiles, drag one tile onto another to swap them"
 msgstr ""
 
-#: inc/Config/TierMatrix.php:159
+#: inc/Config/TierMatrix.php:153
 msgid "Reframe a photograph inside its tile"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:56
+#: inc/Patterns/FreePatterns.php:49
 msgid "Triptych"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:57
+#: inc/Patterns/FreePatterns.php:50
 msgid "Three images across, with a generous gap."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:83
+#: inc/Patterns/FreePatterns.php:76
 msgid "Photo Essay"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:84
+#: inc/Patterns/FreePatterns.php:77
 msgid "A heading, an introduction and a full-bleed mosaic of seven images."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:88
+#: inc/Patterns/FreePatterns.php:81
 msgid "A Week of Mornings"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:90
+#: inc/Patterns/FreePatterns.php:83
 msgid "Seven days, one hour each. Replace these with your own photographs and the composition stays exactly where you put it."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:105
+#: inc/Patterns/FreePatterns.php:98
 msgid "Photographs by you. Add a caption to each image and it appears on hover."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:120
+#: inc/Patterns/FreePatterns.php:113
 msgid "Hero Mosaic"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:121
+#: inc/Patterns/FreePatterns.php:114
 msgid "A full-bleed opener built around one dominant image."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:148
+#: inc/Patterns/FreePatterns.php:141
 msgid "From the Archive"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:150
+#: inc/Patterns/FreePatterns.php:143
 msgid "A short piece of writing beside the pictures it belongs to. The mosaic keeps its own proportions as the column narrows, and rearranges when the layout stacks."
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:154
+#: inc/Patterns/FreePatterns.php:147
 msgid "Sidebar Story"
 msgstr ""
 
-#: inc/Patterns/FreePatterns.php:155
+#: inc/Patterns/FreePatterns.php:148
 msgid "Writing on the left, a six-image mosaic on the right."
 msgstr ""
 
@@ -229,62 +229,6 @@ msgstr ""
 msgid "Activate Serendipity Deluxe, then enter your license key in its settings."
 msgstr ""
 
-#: inc/Service/AssetLoader.php:96
-msgid "Previous image"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:97
-msgid "Next image"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:98
-msgid "Previous image (unavailable)"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:99
-msgid "Next image (unavailable)"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:100
-msgid "Image carousel"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:101
-msgid "Carousel images"
-msgstr ""
-
-#. translators: 1: the image's position, 2: how many images the gallery has.
-#: inc/Service/AssetLoader.php:103
-#, php-format
-msgid "Image %1$s of %2$s"
-msgstr ""
-
-#. translators: %1$s: a slide's position in the carousel.
-#: inc/Service/AssetLoader.php:105
-#, php-format
-msgid "Go to slide %1$s"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:106
-msgid "Close dialog"
-msgstr ""
-
-#: inc/Service/AssetLoader.php:107
-msgid "Pause slideshow"
-msgstr ""
-
-#. translators: 1: the image's position, 2: how many images, 3: its caption.
-#: inc/Service/AssetLoader.php:109
-#, php-format
-msgid "Image %1$s of %2$s: %3$s"
-msgstr ""
-
-#. translators: The carousel's visible count. 1: the slide shown, 2: how many slides.
-#: inc/Service/AssetLoader.php:111
-#, php-format
-msgid "%1$s / %2$s"
-msgstr ""
-
 #: inc/Service/FreeRowMeta.php:31
 msgid "Docs"
 msgstr ""
@@ -304,7 +248,7 @@ msgstr ""
 #: inc/Service/FreeSettings.php:61
 #: inc/Service/FreeSettings.php:62
 #: inc/Service/FreeSettings.php:133
-#: inc/Service/PatternLibrary.php:61
+#: inc/Service/PatternLibrary.php:60
 msgid "Serendipity"
 msgstr ""
 
@@ -313,20 +257,20 @@ msgid "Settings"
 msgstr ""
 
 #. translators: %1$d: the tile's position in the gallery. %2$d: how many tiles there are.
-#: inc/Service/Serendipity.php:440
+#: inc/Service/Serendipity.php:374
 #, php-format
 msgid "Open image %1$d of %2$d"
 msgstr ""
 
-#: src/blocks/serendipity/edit.js:523
+#: src/blocks/serendipity/edit.js:482
 msgid "Add images to create your gallery"
 msgstr ""
 
-#: src/blocks/serendipity/edit.js:560
+#: src/blocks/serendipity/edit.js:519
 msgid "Refresh Layout & Save"
 msgstr ""
 
-#: src/blocks/serendipity/edit.js:573
+#: src/blocks/serendipity/edit.js:532
 msgid "Reset Gallery Layout"
 msgstr ""
 
@@ -363,153 +307,100 @@ msgid "No layout saved yet"
 msgstr ""
 
 #. translators: %s: the photograph's alt text, caption or file name.
-#: src/blocks/serendipity/_components/GalleryGrid.jsx:230
+#: src/blocks/serendipity/_components/GalleryGrid.jsx:245
 #, js-format
 msgid "Removed %s."
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryGrid.jsx:233
+#: src/blocks/serendipity/_components/GalleryGrid.jsx:248
 msgid "Image removed."
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:141
-msgid "Layout Settings"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:144
-msgid "Gap Size (px)"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:154
-msgid "Minimum Height (px)"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:170
-msgid "Set a minimum display height for the tiled gallery."
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:177
-msgid "Thumbnail resolution"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:192
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:43
 msgid "Hover Styles"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:208
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:65
+msgid "Lightbox"
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:162
+msgid "Layout Settings"
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:165
+msgid "Gap Size (px)"
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:175
+msgid "Minimum Height (px)"
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:191
+msgid "Set a minimum display height for the tiled gallery."
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:198
+msgid "Thumbnail resolution"
+msgstr ""
+
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:218
 msgid "Stack on Mobile"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:212
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:222
 msgid "Stack thumbnails on mobile?"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:224
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:234
 msgid "Layout"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:235
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:245
 msgid "Refresh Layout"
 msgstr ""
 
 #. translators: %s: device type (Desktop, Tablet, Mobile)
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:245
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:255
 #, js-format
 msgid "Save %s Layout"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:254
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:264
 msgid "Debug"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:255
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:265
 msgid "Enable debug if encountering issues."
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:265
+#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:275
 msgid "Lightbox Settings"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:272
-msgid "Lightbox"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:306
-msgid "Image Resolution"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:310
-msgid "The size each photograph opens at in the carousel."
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:323
-msgid "Carousel Controls"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:327
-msgid "Choose which additional controls to display in the carousel."
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:334
-msgid "Dot Navigation"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:341
-msgid "Snap Display"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:348
-#: src/blocks/serendipity/_lib/stylesModel.js:29
-msgid "None"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:361
-msgid "Show carousel captions"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:365
-msgid "Enable captions to be displayed on carousel"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:383
-msgid "Play as a slideshow"
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:387
-msgid "Advance on its own until the visitor takes over. Ignored for anyone who has asked for reduced motion."
-msgstr ""
-
-#: src/blocks/serendipity/_components/GalleryInspectorControls.jsx:400
-msgid "Seconds per slide"
-msgstr ""
-
 #. translators: %s: the photograph's alt text, caption or file name.
-#: src/blocks/serendipity/_components/GalleryItem.jsx:36
+#: src/blocks/serendipity/_components/GalleryItem.jsx:40
 #, js-format
 msgid "Remove image: %s"
 msgstr ""
 
-#: src/blocks/serendipity/_components/GalleryItem.jsx:39
+#: src/blocks/serendipity/_components/GalleryItem.jsx:43
 msgid "Remove image"
 msgstr ""
 
-#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:62
+#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:67
 msgid "Layout Studio"
 msgstr ""
 
-#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:66
+#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:71
 msgid "Drag the seams between tiles to resize them, drag a photograph within its tile to reframe it, and drag one tile onto another to swap the two."
 msgstr ""
 
-#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:74
+#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:77
 msgid "Layout Studio is in Serendipity Deluxe."
 msgstr ""
 
-#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:78
-msgid "Layout Studio needs an active Serendipity Deluxe license."
-msgstr ""
-
-#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:86
+#: src/blocks/serendipity/_components/LayoutStudioSeat.jsx:82
 msgid "Your galleries and saved layouts carry over unchanged."
 msgstr ""
 
@@ -527,122 +418,44 @@ msgstr ""
 msgid "See Serendipity Deluxe"
 msgstr ""
 
-#: src/blocks/serendipity/_lib/lightboxModel.js:29
+#: src/blocks/serendipity/_lib/lightboxModel.js:33
 msgid "Your lightbox plugin (default)"
 msgstr ""
 
-#: src/blocks/serendipity/_lib/lightboxModel.js:33
-msgid "Link to image file"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:37
-msgid "Link to attachment page"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:40
-msgid "No link"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:42
-msgid "Built-in carousel"
-msgstr ""
-
-#. translators: %s: the name of a lightbox mode, e.g. "Your lightbox plugin".
-#: src/blocks/serendipity/_lib/lightboxModel.js:106
-#, js-format
-msgid "This gallery keeps that setting; your site uses “%s” in its place."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:110
-msgid "Your lightbox plugin"
-msgstr ""
-
-#. translators: %s: the name of a lightbox mode, e.g. "Link to image file".
-#: src/blocks/serendipity/_lib/lightboxModel.js:114
-#, js-format
-msgid "The Lightbox setting is still “%s” — nothing changed."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:123
-msgid "The built-in carousel is in Serendipity Deluxe."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:128
-msgid "It opens each photograph in a carousel with captions and autoplay, and needs no lightbox plugin."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:137
-msgid "The built-in carousel needs an active Serendipity Deluxe license."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:155
-msgid "Opens the bundled carousel. Loads its own script and styles on pages that use it."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:160
-msgid "Each image links to its attachment page."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:165
-msgid "Images are not linked. Nothing happens on click."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:170
-msgid "Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/lightboxModel.js:175
+#: src/blocks/serendipity/_lib/lightboxModel.js:38
 msgid "Links each image to the full-size file and groups the gallery, so a lightbox plugin you already run can pick it up."
 msgstr ""
 
-#: src/blocks/serendipity/_lib/stylesModel.js:30
+#: src/blocks/serendipity/_lib/lightboxModel.js:44
+msgid "Link to image file"
+msgstr ""
+
+#: src/blocks/serendipity/_lib/lightboxModel.js:46
+msgid "Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping."
+msgstr ""
+
+#: src/blocks/serendipity/_lib/lightboxModel.js:52
+msgid "Link to attachment page"
+msgstr ""
+
+#: src/blocks/serendipity/_lib/lightboxModel.js:54
+msgid "Each image links to its attachment page."
+msgstr ""
+
+#: src/blocks/serendipity/_lib/lightboxModel.js:60
+msgid "No link"
+msgstr ""
+
+#: src/blocks/serendipity/_lib/lightboxModel.js:62
+msgid "Images are not linked. Nothing happens on click."
+msgstr ""
+
+#: src/blocks/serendipity/_lib/stylesModel.js:23
+msgid "None"
+msgstr ""
+
+#: src/blocks/serendipity/_lib/stylesModel.js:24
 msgid "Fade-Up"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/stylesModel.js:32
-msgid "Split Reveal"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/stylesModel.js:37
-msgid "Zoom and Blur Focus"
-msgstr ""
-
-#: src/blocks/serendipity/_lib/stylesModel.js:42
-msgid "Card Flip"
-msgstr ""
-
-#. translators: %s: the name of a hover style, e.g. "Card Flip".
-#: src/blocks/serendipity/_lib/stylesModel.js:106
-#, js-format
-msgid "%s is a Serendipity Deluxe hover style."
-msgstr ""
-
-#. translators: %s: the name of a hover style, e.g. "Card Flip".
-#: src/blocks/serendipity/_lib/stylesModel.js:114
-#, js-format
-msgid "%s needs an active Serendipity Deluxe license."
-msgstr ""
-
-#. translators: %s: the name of the free hover style, "Fade-Up".
-#: src/blocks/serendipity/_lib/stylesModel.js:126
-#, js-format
-msgid "This gallery keeps that setting; your site shows %s in its place."
-msgstr ""
-
-#: src/blocks/serendipity/_lib/stylesModel.js:133
-msgid "Your gallery still has no hover style — nothing changed."
-msgstr ""
-
-#. translators: %s: the name of a hover style, e.g. "Fade-Up".
-#: src/blocks/serendipity/_lib/stylesModel.js:140
-#, js-format
-msgid "Your gallery still uses %s — nothing changed."
-msgstr ""
-
-#. translators: %s: the name of the free hover style, "Fade-Up".
-#: src/blocks/serendipity/_lib/stylesModel.js:152
-#, js-format
-msgid "Free includes %s."
 msgstr ""
 
 #: src/blocks/serendipity/block.json

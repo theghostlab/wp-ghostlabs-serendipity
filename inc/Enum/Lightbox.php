@@ -7,12 +7,13 @@ namespace GHOSTLABS\SERENDIPITY\Enum;
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * What a click on a gallery tile does.
+ * What a click on a gallery tile does, in every edition.
  *
- * Four of these emit a plain anchor and let whatever lightbox the site already runs
- * pick the gallery up; the fifth opens the built-in carousel. That asymmetry is the
- * point of §6.2 — a gallery with no lightbox of its own is strictly worse than the
- * free competition, so the free tier gets a lightbox: the visitor's own.
+ * Three emit a plain anchor and let whatever lightbox the site already runs pick the
+ * gallery up, and one emits none. That is the point of §6.2 — a gallery with no lightbox
+ * of its own is strictly worse than the free competition, so every edition gets a
+ * lightbox: the visitor's own. A mode an edition adds of its own is not a case here; it
+ * is an extension's (`Contracts\LightboxModeInterface`).
  *
  * The default deliberately links the *full-size* file rather than the display
  * resolution. Lightbox with PhotoSwipe only recognizes links whose href is the file
@@ -32,17 +33,14 @@ enum Lightbox: string
     /** No anchor at all. */
     case None = 'none';
 
-    /** The bundled carousel. The only value that costs a license. */
-    case BuiltIn = 'builtin';
-
     public const DEFAULT = self::Own;
 
     /**
      * Parse an attribute value, falling back to the default rather than throwing.
      *
      * Attributes come from post content, which can be older than the code reading it,
-     * hand-edited, or pasted from another site. An unrecognized value should degrade to
-     * a plain anchor — never fatal, and never silently upgrade to the paid mode.
+     * hand-edited, or pasted from another site. An unrecognized value degrades to a
+     * plain anchor rather than fataling.
      */
     public static function fromAttribute(?string $value): self
     {
@@ -54,36 +52,13 @@ enum Lightbox: string
     }
 
     /**
-     * Blocks saved before this attribute existed carry a `carousel` boolean instead.
-     *
-     * Resolved here rather than by a migration so that a block saved by an older build
-     * keeps rendering what its author chose, without anyone having to re-save every post.
-     */
-    public static function fromLegacyCarousel(?string $value, bool $carousel): self
-    {
-        if ($value === null || $value === '') {
-            return $carousel ? self::BuiltIn : self::DEFAULT;
-        }
-
-        return self::fromAttribute($value);
-    }
-
-    /**
-     * Whether this mode is gated. Only the bundled carousel is.
-     */
-    public function isLicensed(): bool
-    {
-        return $this === self::BuiltIn;
-    }
-
-    /**
      * Whether the rendered tile is wrapped in an anchor.
      */
     public function emitsAnchor(): bool
     {
         return match ($this) {
             self::Own, self::File, self::Attachment => true,
-            self::None, self::BuiltIn              => false,
+            self::None                             => false,
         };
     }
 }

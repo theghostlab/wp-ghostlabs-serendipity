@@ -18,16 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 interface PatternProviderInterface
 {
     /**
-     * The capability a license has to grant before these are registered, or null when
-     * they are free.
+     * The patterns to register on this request. A provider with nothing to offer returns none.
      *
-     * A pattern that inserts and then renders degraded is worse than a pattern that is
-     * not offered: it teaches the user that the plugin is broken rather than that the
-     * edition is limited.
-     */
-    public function capability(): ?string;
 
-    /**
      * @return array<string, array<string, mixed>> Pattern name (without namespace) to
      *                                             `register_block_pattern()` properties.
      */

@@ -33,11 +33,11 @@ final class PatternBuilder
      *  hoverStyle?: string,
      *  lightbox?: string,
      *  thumbnailSize?: string,
-     *  imageResolution?: string,
      *  mobileStackThumbnails?: bool,
-     *  showCarouselCaptions?: bool,
-     *  controls?: string,
+     *  attributes?: array<string, mixed>,
      * } $args
+     *
+     * `attributes` are the block attributes an edition adds of its own, written as given.
      */
     public static function gallery(array $args): string
     {
@@ -56,7 +56,6 @@ final class PatternBuilder
             // browser with no srcset falls back to, the aspect ratio in width/height,
             // and the editor's preview, and for those `large` is the better answer.
             'thumbnailSize'         => $args['thumbnailSize'] ?? 'large',
-            'imageResolution'       => $args['imageResolution'] ?? 'large',
             'rawImages'             => PatternImages::set($args['count'], $captions),
             'hoverStyle'            => $args['hoverStyle'] ?? '',
             'lightbox'              => $lightbox,
@@ -67,14 +66,8 @@ final class PatternBuilder
                 $args['width'] ?? PatternLayout::NOMINAL_WIDTH
             ),
             'mobileStackThumbnails' => $args['mobileStackThumbnails'] ?? false,
-
-            // The legacy boolean, kept in step with the mode it was replaced by. A block
-            // that disagreed with itself would be rewritten by the attribute gate.
-            'carousel'              => $lightbox === 'builtin',
-            'showCarouselCaptions'  => $args['showCarouselCaptions'] ?? false,
-            'controls'              => $args['controls'] ?? 'dot-navigation',
             'debug'                 => false,
-        ];
+        ] + ($args['attributes'] ?? []);
 
         if ( ! empty($args['align'])) {
             $attributes['align'] = $args['align'];

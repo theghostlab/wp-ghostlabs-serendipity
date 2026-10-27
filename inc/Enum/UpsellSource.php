@@ -9,9 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Which surface a buyer left from, as the `from` parameter on an upgrade link.
  *
- * Five surfaces ask for the sale, and without this enum every one of them would produce a
- * byte-identical URL: nothing would tell a purchase that started at the hover style select
- * from one that started on the settings screen. The portfolio spec ranks the block inspector
+ * Three surfaces ask for the sale (five did, until two were retired on 2026-10-26), and
+ * without this enum every one of them would produce a byte-identical URL: nothing would tell a
+ * purchase that started at the Layout Studio panel from one that started on the settings screen. The portfolio spec ranks the block inspector
  * first on reasoning rather than evidence, and `from=` is how that reasoning gets tested.
  *
  * ## ⚠️ A hint, never an authorization
@@ -33,10 +33,14 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 enum UpsellSource: string
 {
-    /** The hover style select, when an author picks a style this edition doesn't have. */
+    /**
+     * ⚠️ **Retired 2026-10-26.** The hover style select once offered styles this edition does
+     * not have; WordPress.org refused that under Guideline 5, and it offers only its own now.
+     * Kept because the value is published: a sale filed under it stays readable.
+     */
     case EditorHoverStyle = 'editor-hover-style';
 
-    /** The Lightbox select, when an author picks the built-in carousel. */
+    /** ⚠️ **Retired 2026-10-26**, as `EditorHoverStyle`: the Lightbox select offered the carousel. */
     case EditorLightbox = 'editor-lightbox';
 
     /** The closed Layout Studio panel in the block sidebar. */
@@ -54,15 +58,13 @@ enum UpsellSource: string
     case SettingsTable = 'settings-table';
 
     /**
-     * The surfaces inside the block editor, which PHP inlines as a map keyed by value.
+     * The surfaces inside the block editor that still ask, which PHP inlines as a map keyed by
+     * value. The two retired ones are not among them.
      *
      * @return list<self>
      */
     public static function editor(): array
     {
-        return array_values(array_filter(
-            self::cases(),
-            static fn (self $case): bool => str_starts_with($case->value, 'editor-')
-        ));
+        return [ self::EditorLayoutStudio ];
     }
 }

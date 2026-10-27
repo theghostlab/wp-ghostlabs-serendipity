@@ -216,9 +216,7 @@
       xPercent: rect.x / containerWidth * 100,
       yPercent: rect.y / containerHeight * 100,
       widthPercent: rect.width / containerWidth * 100,
-      heightPercent: rect.height / containerHeight * 100,
-      // Preserve any additional properties
-      ...rect.objectPosition && { objectPosition: rect.objectPosition }
+      heightPercent: rect.height / containerHeight * 100
     }));
   };
   var convertToPixels = (rectangles, containerWidth, containerHeight, gap = 0) => {
@@ -226,9 +224,7 @@
       x: rect.xPercent / 100 * containerWidth,
       y: rect.yPercent / 100 * containerHeight,
       width: rect.widthPercent / 100 * containerWidth,
-      height: rect.heightPercent / 100 * containerHeight,
-      // Preserve additional properties
-      ...rect.objectPosition && { objectPosition: rect.objectPosition }
+      height: rect.heightPercent / 100 * containerHeight
     }));
     return insetTiles(cells, containerWidth, containerHeight, gap);
   };
@@ -248,6 +244,7 @@
     const GAP = splitValueAndUnit(options.gap)[0] ?? 2;
     const MIN_HEIGHT = "720px";
     const DEBUG = options.debug;
+    const paintTile = typeof options.paintTile === "function" ? options.paintTile : null;
     let originalDimensions = null;
     let savedPercentageLayout = null;
     const preloader = SerendipityPreloader(galleryContainer);
@@ -354,12 +351,7 @@
           item.style.top = rect.y + "px";
           item.style.width = rect.width + "px";
           item.style.height = rect.height + "px";
-          if (rect?.objectPosition) {
-            const img = item.querySelector("img");
-            if (img) {
-              img.style.objectPosition = rect.objectPosition;
-            }
-          }
+          paintTile?.(item, savedPercentageLayout?.[i]);
         }
       });
       return rectangles;
@@ -811,7 +803,7 @@
         return;
       }
       const seat = window.GhostLabsSerendipity?.enhancement;
-      if (seat?.script && gallery.dataset.lightbox === "builtin") {
+      if (seat?.script && seat.lightbox && gallery.dataset.lightbox === seat.lightbox) {
         e.preventDefault();
         loadEnhancement(seat).then(() => {
           const handler = window.GhostLabsSerendipity?.galleryClickHandler;

@@ -35,7 +35,7 @@ import {
 	selectBlock,
 } from './_lib/_blockUtils';
 import { COMPOSE, withLayout } from './_lib/composition';
-import { LIGHTBOX } from './_lib/lightboxModel';
+import { useEditionFilters } from './_lib/editionHooks';
 
 const GALLERY_ID_PREFIX = 'ghostlabs-serendipity-gallery';
 
@@ -67,23 +67,21 @@ export default function Edit( {
 
 	const {
 		align,
-		carousel,
 		lightbox,
-		controls,
 		debug,
 		id,
-		imageResolution,
 		thumbnailSize,
 		gap,
 		hoverStyle,
 		layoutData,
 		minHeight,
 		rawImages,
-		showCarouselCaptions,
 		mobileStackThumbnails,
-		autoplay,
-		autoplayDelay,
 	} = attributes;
+
+	// What an edition adds to this editor arrives through filters, possibly after the first
+	// render. See `_lib/editionHooks`.
+	useEditionFilters();
 
 	const [ gallery, setGallery ] = useState( null );
 	const [ aspectRatio, setAspectRatio ] = useState( 'auto' );
@@ -267,17 +265,10 @@ export default function Edit( {
 	};
 
 	/**
-	 * The mode, and the legacy boolean older saved blocks still carry, kept in step rather
-	 * than leaving a stale `true` behind for the render to resolve. One write, so one undo
-	 * step: as two, undoing once left a block with the built-in carousel both on and off.
-	 *
-	 * @param {string} value One of LIGHTBOX.
+	 * @param {string} value A lightbox mode, see `_lib/lightboxModel`.
 	 */
 	const updateLightbox = ( value ) => {
-		writeAttributes( {
-			lightbox: value,
-			carousel: value === LIGHTBOX.BUILT_IN,
-		} );
+		handleChange( 'lightbox', value );
 	};
 
 	const setDebug = ( value ) => {
@@ -285,11 +276,8 @@ export default function Edit( {
 	};
 
 	/**
-	 * Reframing and reordering used to live here, behind a 500ms long press on a tile.
-	 * Both are Layout Studio's now, in the bundle the licensed edition enqueues, which
-	 * is where they belong on two counts: they are paid features, and the block ships to
-	 * every edition. The hold is gone with them; a drag starts immediately and the tile's
-	 * own boundary decides whether it is a crop or a swap.
+	 * Reordering and the rest of Layout Studio's gestures are not here: the block ships to
+	 * every edition, and the studio is not every edition's (`LayoutStudioSeat`).
 	 */
 
 	/**
@@ -369,28 +357,8 @@ export default function Edit( {
 		handleChange( 'mobileStackThumbnails', value );
 	};
 
-	const updateImageResolution = ( newSize ) => {
-		handleChange( 'imageResolution', newSize );
-	};
-
 	const updateHoverStyle = ( newHoverStyle ) => {
 		handleChange( 'hoverStyle', newHoverStyle );
-	};
-
-	const updateControls = ( newControls ) => {
-		handleChange( 'controls', newControls );
-	};
-
-	const updateShowCarouselCaptions = ( value ) => {
-		handleChange( 'showCarouselCaptions', value );
-	};
-
-	const updateAutoplay = ( value ) => {
-		handleChange( 'autoplay', value );
-	};
-
-	const updateAutoplayDelay = ( value ) => {
-		handleChange( 'autoplayDelay', value );
 	};
 
 	/**
@@ -448,9 +416,9 @@ export default function Edit( {
 		<div { ...blockProps }>
 			<GalleryInspectorControls
 				key={ 'ghostlabs-serendipity-gallery-inspector-controls' }
-				carousel={ carousel }
+				attributes={ attributes }
+				setAttributes={ writeAttributes }
 				lightbox={ lightbox }
-				controls={ controls }
 				debug={ debug }
 				gap={ gap }
 				id={ id }
@@ -459,16 +427,9 @@ export default function Edit( {
 				imageCount={ rawImages.length }
 				hoverStyle={ hoverStyle }
 				minHeight={ minHeight }
-				imageResolution={ imageResolution }
 				thumbnailSize={ thumbnailSize }
-				showCarouselCaptions={ showCarouselCaptions }
-				autoplay={ autoplay }
-				autoplayDelay={ autoplayDelay }
-				onAutoplay={ updateAutoplay }
-				onAutoplayDelay={ updateAutoplayDelay }
 				mobileStackThumbnails={ mobileStackThumbnails }
 				onMobileStackThumbnails={ updateMobileStackThumbnails }
-				onImageResolution={ updateImageResolution }
 				onChangeGap={ updateGap }
 				onChangeMinHeight={ updateMinHeight }
 				onSaveLayout={ saveLayout }
@@ -476,8 +437,6 @@ export default function Edit( {
 				onThumbnailSize={ updateThumbnailSize }
 				onHoverStyle={ updateHoverStyle }
 				onLightbox={ updateLightbox }
-				onControls={ updateControls }
-				onShowCarouselCaptions={ updateShowCarouselCaptions }
 				onDebug={ setDebug }
 			/>
 
@@ -502,7 +461,7 @@ export default function Edit( {
 						setAspectRatio={ setAspectRatio }
 					/>
 
-					{ /* The licensed edition fills this; every other renders nothing. */ }
+					{ /* Filled by an edition that has it; see LayoutStudioSeat. */ }
 					{ isSelected && (
 						<LayoutStudioSeat
 							gallery={ gallery }

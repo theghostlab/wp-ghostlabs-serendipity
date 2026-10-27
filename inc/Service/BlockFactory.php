@@ -40,7 +40,7 @@ class BlockFactory
                 $blockType = $this->blocksDir().'/'.$block;
                 $registered = register_block_type( $blockType );
 
-                $this->publishCapabilities($registered);
+                $this->publishEditorData($registered);
             };
         }
 
@@ -48,31 +48,27 @@ class BlockFactory
     }
 
     /**
-     * Tell the editor which gated features this build may use.
-     *
-     * The first of the three gates. The editor disables what the build cannot do and
-     * says why, rather than offering a control that silently fails on save — but it is
-     * only ever a courtesy, because anything the editor allows is checked again when the
-     * attributes are validated and again when the block renders.
+     * Hand the block's editor script what PHP knows and it does not: see `editorData()`.
      *
      * Attached to the editor script rather than printed globally, so it exists only on
-     * screens that actually load the block.
+     * screens that actually load the block. Nothing at all where there is nothing to say.
      *
      * @param \WP_Block_Type|false $registered
      */
-    private function publishCapabilities(mixed $registered): void
+    private function publishEditorData(mixed $registered): void
     {
         if ( ! $registered instanceof \WP_Block_Type) {
             return;
         }
 
         $handle = $registered->editor_script_handles[0] ?? null;
+        $data   = self::editorData();
 
-        if ($handle === null) {
+        if ($handle === null || $data === '') {
             return;
         }
 
-        wp_add_inline_script($handle, self::editorData(), 'before');
+        wp_add_inline_script($handle, $data, 'before');
     }
 
     /**
@@ -86,9 +82,9 @@ class BlockFactory
      * Offer the editor's upgrade links. The free edition's boot calls this once; an edition
      * with nothing to sell never does, and the defaults are already right.
      *
-     * 🔴 **Deliberately not a filter**, for the reason `Capabilities` has none: a filter can be
-     * answered by any plugin on the site, and on a licensed site that would switch the free
-     * edition's pitch on for a paying customer (claims check, 2026-10-11).
+     * 🔴 **Deliberately not a filter**: a filter can be answered by any plugin on the site, and
+     * on a site running the paid edition that would switch the free edition's pitch on for a
+     * paying customer (claims check, 2026-10-11).
      *
      * Only string keys mapped to non-empty strings are kept.
      *
@@ -109,18 +105,18 @@ class BlockFactory
         return self::$upgradeUrls;
     }
 
-    /** Forget the offer. Test seam only, like `Capabilities::reset()`. */
+    /** Forget the offer. Test seam only. */
     public static function reset(): void
     {
         self::$upgradeUrls = [];
     }
 
     /**
-     * The script the block's editor bundle reads before it runs.
+     * The script the block's editor bundle reads before it runs, or ''.
      *
-     * Always the capability map. And, only where an edition has offered them
-     * (`offerUpgrade()`), the upgrade links the editor's upsell surfaces render — one finished
-     * URL per surface, keyed by its `from` value, built by PHP.
+     * Only where an edition has offered them (`offerUpgrade()`): the upgrade links the
+     * editor's upsell panel renders — one finished URL per surface, keyed by its `from`
+     * value, built by PHP.
      *
      * 🔴 The block is built once and ships to every edition, so it cannot carry a URL of its
      * own: a literal there drops attribution and points every edition at a sale. An edition
@@ -128,15 +124,10 @@ class BlockFactory
      */
     public static function editorData(): string
     {
-        $script = sprintf(
-            'window.ghostlabsSerendipityCapabilities = %s;',
-            wp_json_encode(Capabilities::all())
-        );
-
-        if (self::$upgradeUrls !== []) {
-            $script .= sprintf('window.ghostlabsSerendipityUpgrade = %s;', wp_json_encode([ 'urls' => self::$upgradeUrls ]));
+        if (self::$upgradeUrls === []) {
+            return '';
         }
 
-        return $script;
+        return sprintf('window.ghostlabsSerendipityUpgrade = %s;', wp_json_encode([ 'urls' => self::$upgradeUrls ]));
     }
 }

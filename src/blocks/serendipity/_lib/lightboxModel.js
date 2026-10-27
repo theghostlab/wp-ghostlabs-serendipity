@@ -1,180 +1,110 @@
-import { __, sprintf } from '@wordpress/i18n';
-import { CAPABILITY, hasCapability } from './capabilities';
-import { UPSELL, sellsUpgrade, upgradeUrl } from './upgradeUrl';
+import { __ } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
+
+import { FILTER } from './editionHooks';
 
 /**
- * The Lightbox select's options. Mirrors the PHP enum of the same name.
+ * The lightbox modes every edition has. Mirrors the PHP enum of the same name.
  *
- * Four of these emit a plain anchor and let whatever lightbox the site already runs pick
- * the gallery up; the fifth opens the bundled carousel and is the only one that costs a
- * license.
+ * Three emit a plain anchor and let whatever lightbox the site already runs pick the gallery
+ * up, and one emits none. An edition adds a mode of its own through `FILTER.LIGHTBOX_MODES`.
  */
 export const LIGHTBOX = {
 	OWN: 'own',
 	FILE: 'file',
 	ATTACHMENT: 'attachment',
 	NONE: 'none',
-	BUILT_IN: 'builtin',
 };
 
 export const LIGHTBOX_DEFAULT = LIGHTBOX.OWN;
 
 /**
- * The modes, in the select's order, with names resolved when asked.
+ * The modes, in the select's order, with names and help resolved when asked.
  *
- * @return {Array<{label: string, value: string}>} The modes.
+ * A mode an edition adds may carry `claims( attributes )` — whether a block with no `lightbox`
+ * value asked for it some older way — and `Settings`, a component rendered under the select
+ * while the mode is chosen, handed `{ attributes, setAttributes }`.
+ *
+ * @return {Array<{label: string, value: string, help: string, claims?: Function, Settings?: Function}>} The modes.
  */
-const modes = () => [
-	{
-		label: __( 'Your lightbox plugin (default)', 'ghostlabs-serendipity' ),
-		value: LIGHTBOX.OWN,
-	},
-	{
-		label: __( 'Link to image file', 'ghostlabs-serendipity' ),
-		value: LIGHTBOX.FILE,
-	},
-	{
-		label: __( 'Link to attachment page', 'ghostlabs-serendipity' ),
-		value: LIGHTBOX.ATTACHMENT,
-	},
-	{ label: __( 'No link', 'ghostlabs-serendipity' ), value: LIGHTBOX.NONE },
-	{
-		label: __( 'Built-in carousel', 'ghostlabs-serendipity' ),
-		value: LIGHTBOX.BUILT_IN,
-	},
-];
+export const lightboxModes = () =>
+	applyFilters( FILTER.LIGHTBOX_MODES, [
+		{
+			label: __(
+				'Your lightbox plugin (default)',
+				'ghostlabs-serendipity'
+			),
+			value: LIGHTBOX.OWN,
+			help: __(
+				'Links each image to the full-size file and groups the gallery, so a lightbox plugin you already run can pick it up.',
+				'ghostlabs-serendipity'
+			),
+		},
+		{
+			label: __( 'Link to image file', 'ghostlabs-serendipity' ),
+			value: LIGHTBOX.FILE,
+			help: __(
+				'Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping.',
+				'ghostlabs-serendipity'
+			),
+		},
+		{
+			label: __( 'Link to attachment page', 'ghostlabs-serendipity' ),
+			value: LIGHTBOX.ATTACHMENT,
+			help: __(
+				'Each image links to its attachment page.',
+				'ghostlabs-serendipity'
+			),
+		},
+		{
+			label: __( 'No link', 'ghostlabs-serendipity' ),
+			value: LIGHTBOX.NONE,
+			help: __(
+				'Images are not linked. Nothing happens on click.',
+				'ghostlabs-serendipity'
+			),
+		},
+	] );
 
 /**
  * @param {string} value A lightbox mode.
- * @return {boolean} Whether this build may not use it — only ever the carousel.
+ * @return {Object|undefined} The mode, where this editor offers it.
  */
-export const isLockedLightbox = ( value ) =>
-	value === LIGHTBOX.BUILT_IN &&
-	! hasCapability( CAPABILITY.BUILT_IN_LIGHTBOX );
+export const lightboxModeFor = ( value ) =>
+	lightboxModes().find( ( mode ) => mode.value === value );
 
 /**
- * What the site actually uses for a stored mode: a locked carousel renders as
- * `Lightbox::DEFAULT`, applied by `AttributeGate`. The stored value is kept.
+ * What the gallery uses: the stored mode where this editor offers it, and `LIGHTBOX_DEFAULT`
+ * for anything else, as the render does.
  *
- * @param {string} stored The block's lightbox mode.
+ * @param {Object} attributes The block's attributes.
  * @return {string} The mode in effect.
  */
-export const lightboxRunning = ( stored ) =>
-	isLockedLightbox( stored ) ? LIGHTBOX_DEFAULT : stored;
+export const lightboxInEffect = ( attributes ) => {
+	const lightbox = attributes?.lightbox;
 
-/**
- * @param {string} value A lightbox mode.
- * @return {string} Its name, as the select shows it.
- */
-export const lightboxName = ( value ) =>
-	modes().find( ( mode ) => mode.value === value )?.label ?? value;
+	if ( ! lightbox ) {
+		const claimed = lightboxModes().find( ( mode ) =>
+			mode.claims?.( attributes ?? {} )
+		);
 
-/**
- * Options for the SelectControl. Since 2026-10-03 the carousel is offered like any other mode
- * and **answers the click** (the convention's Upsell select): only once refused, a beat after
- * it was chosen, is it disabled. It stays the last option so the list does not reorder between
- * builds.
- *
- * @param {string|null} refused The mode currently refused, or null.
- * @return {Array<{label: string, value: string, disabled?: boolean}>} Select options.
- */
-export const lightboxOptions = ( refused = null ) =>
-	modes().map( ( { label, value } ) =>
-		value === refused && isLockedLightbox( value )
-			? { label, value, disabled: true }
-			: { label, value }
-	);
+		return claimed ? claimed.value : LIGHTBOX_DEFAULT;
+	}
 
-/**
- * The refusal, as words. Claims-checked 2026-10-03; the lapsed-license wording is new with
- * this build.
- *
- * ⚠️ The "your lightbox plugin" line names `Lightbox::DEFAULT`, which is what `AttributeGate`
- * renders a locked carousel as. Change the default and this sentence changes with it.
- *
- * @param {Object}  notice
- * @param {string}  notice.running  The mode in effect.
- * @param {boolean} notice.isStored True when the block itself holds the carousel.
- * @return {{title: string, lines: string[], url: string|null}} The notice's copy.
- */
-export const lightboxRefusalCopy = ( { running, isStored } ) => {
-	const sells = sellsUpgrade();
-
-	const outcome = isStored
-		? sprintf(
-				/* translators: %s: the name of a lightbox mode, e.g. "Your lightbox plugin". */
-				__(
-					'This gallery keeps that setting; your site uses “%s” in its place.',
-					'ghostlabs-serendipity'
-				),
-				__( 'Your lightbox plugin', 'ghostlabs-serendipity' )
-		  )
-		: sprintf(
-				/* translators: %s: the name of a lightbox mode, e.g. "Link to image file". */
-				__(
-					'The Lightbox setting is still “%s” — nothing changed.',
-					'ghostlabs-serendipity'
-				),
-				lightboxName( running )
-		  );
-
-	return sells
-		? {
-				title: __(
-					'The built-in carousel is in Serendipity Deluxe.',
-					'ghostlabs-serendipity'
-				),
-				lines: [
-					__(
-						'It opens each photograph in a carousel with captions and autoplay, and needs no lightbox plugin.',
-						'ghostlabs-serendipity'
-					),
-					outcome,
-				],
-				url: upgradeUrl( UPSELL.LIGHTBOX ),
-		  }
-		: {
-				title: __(
-					'The built-in carousel needs an active Serendipity Deluxe license.',
-					'ghostlabs-serendipity'
-				),
-				lines: [ outcome ],
-				url: null,
-		  };
+	return lightboxModeFor( lightbox ) ? lightbox : LIGHTBOX_DEFAULT;
 };
+
+/**
+ * @return {Array<{label: string, value: string}>} Options for the SelectControl.
+ */
+export const lightboxOptions = () =>
+	lightboxModes().map( ( { label, value } ) => ( { label, value } ) );
 
 /**
  * The help text under the select, which is where the mode earns its keep.
  *
- * @param {string} value The selected lightbox mode.
+ * @param {string} value A lightbox mode.
  * @return {string} Help text.
  */
-export const lightboxHelp = ( value ) => {
-	switch ( value ) {
-		case LIGHTBOX.BUILT_IN:
-			return __(
-				'Opens the bundled carousel. Loads its own script and styles on pages that use it.',
-				'ghostlabs-serendipity'
-			);
-		case LIGHTBOX.ATTACHMENT:
-			return __(
-				'Each image links to its attachment page.',
-				'ghostlabs-serendipity'
-			);
-		case LIGHTBOX.NONE:
-			return __(
-				'Images are not linked. Nothing happens on click.',
-				'ghostlabs-serendipity'
-			);
-		case LIGHTBOX.FILE:
-			return __(
-				'Each image links to the full-size file, ungrouped — for lightboxes that do their own grouping.',
-				'ghostlabs-serendipity'
-			);
-		default:
-			return __(
-				'Links each image to the full-size file and groups the gallery, so a lightbox plugin you already run can pick it up.',
-				'ghostlabs-serendipity'
-			);
-	}
-};
+export const lightboxHelp = ( value ) =>
+	lightboxModeFor( value )?.help ?? lightboxModeFor( LIGHTBOX_DEFAULT ).help;

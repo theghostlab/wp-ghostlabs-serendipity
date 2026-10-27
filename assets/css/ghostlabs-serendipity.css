@@ -106,132 +106,6 @@
 .ghostlabs-serendipity__gallery-item--style-1 img {
   transition: transform 0.5s ease, filter 0.5s ease;
 }
-.ghostlabs-serendipity__gallery-item--style-2::before, .ghostlabs-serendipity__gallery-item--style-2::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  left: 0;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 1;
-}
-.ghostlabs-serendipity__gallery-item--style-2::before {
-  top: 0;
-  transform: translateY(-100%);
-}
-.ghostlabs-serendipity__gallery-item--style-2::after {
-  bottom: 0;
-  transform: translateY(100%);
-}
-.ghostlabs-serendipity__gallery-item--style-2 .caption {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 16px;
-  text-align: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 2;
-}
-.ghostlabs-serendipity__gallery-item--style-2:hover::before, .ghostlabs-serendipity__gallery-item--style-2:focus-within::before {
-  transform: translateY(-50%);
-}
-.ghostlabs-serendipity__gallery-item--style-2:hover::after, .ghostlabs-serendipity__gallery-item--style-2:focus-within::after {
-  transform: translateY(50%);
-}
-.ghostlabs-serendipity__gallery-item--style-2:hover .caption, .ghostlabs-serendipity__gallery-item--style-2:focus-within .caption {
-  opacity: 1;
-  transition-delay: 0.2s;
-}
-.ghostlabs-serendipity__gallery-item--style-2:hover img, .ghostlabs-serendipity__gallery-item--style-2:focus-within img {
-  transform: scale(1.1);
-}
-.ghostlabs-serendipity__gallery-item--style-2 img {
-  transition: transform 0.5s ease;
-}
-.ghostlabs-serendipity__gallery-item--style-3 {
-  perspective: 1000px;
-}
-.ghostlabs-serendipity__gallery-item--style-3 .caption-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 2;
-}
-.ghostlabs-serendipity__gallery-item--style-3 .caption {
-  color: #fff;
-  font-size: 18px;
-  text-align: center;
-  transform: translateZ(-100px);
-  transition: transform 0.4s ease;
-  padding: 20px;
-  max-width: 80%;
-}
-.ghostlabs-serendipity__gallery-item--style-3:hover .caption-container, .ghostlabs-serendipity__gallery-item--style-3:focus-within .caption-container {
-  opacity: 1;
-}
-.ghostlabs-serendipity__gallery-item--style-3:hover .caption, .ghostlabs-serendipity__gallery-item--style-3:focus-within .caption {
-  transform: translateZ(0);
-}
-.ghostlabs-serendipity__gallery-item--style-3:hover img, .ghostlabs-serendipity__gallery-item--style-3:focus-within img {
-  transform: scale(1.2);
-  filter: blur(3px);
-}
-.ghostlabs-serendipity__gallery-item--style-3 img {
-  transition: transform 0.5s ease, filter 0.5s ease;
-}
-.ghostlabs-serendipity__gallery-item--style-5 {
-  perspective: 1000px;
-  transform-style: preserve-3d;
-}
-.ghostlabs-serendipity__gallery-item--style-5 .front,
-.ghostlabs-serendipity__gallery-item--style-5 .back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.ghostlabs-serendipity__gallery-item--style-5 .front {
-  z-index: 2;
-  transform: rotateY(0deg);
-}
-.ghostlabs-serendipity__gallery-item--style-5 .back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f8f8;
-  transform: rotateY(180deg);
-  text-align: center;
-}
-.ghostlabs-serendipity__gallery-item--style-5 .caption {
-  font-size: 16px;
-  color: #333;
-  max-width: 90%;
-}
-.ghostlabs-serendipity__gallery-item--style-5:hover .front, .ghostlabs-serendipity__gallery-item--style-5:focus-within .front {
-  transform: rotateY(180deg);
-}
-.ghostlabs-serendipity__gallery-item--style-5:hover .back, .ghostlabs-serendipity__gallery-item--style-5:focus-within .back {
-  transform: rotateY(0deg);
-}
 .ghostlabs-serendipity--gallery-loading {
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
@@ -292,10 +166,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ghostlabs-serendipity__gallery-item--style-1,
-  .ghostlabs-serendipity__gallery-item--style-1 *, .ghostlabs-serendipity__gallery-item--style-1::before, .ghostlabs-serendipity__gallery-item--style-1::after, .ghostlabs-serendipity__gallery-item--style-2,
-  .ghostlabs-serendipity__gallery-item--style-2 *, .ghostlabs-serendipity__gallery-item--style-2::before, .ghostlabs-serendipity__gallery-item--style-2::after, .ghostlabs-serendipity__gallery-item--style-3,
-  .ghostlabs-serendipity__gallery-item--style-3 *, .ghostlabs-serendipity__gallery-item--style-3::before, .ghostlabs-serendipity__gallery-item--style-3::after, .ghostlabs-serendipity__gallery-item--style-5,
-  .ghostlabs-serendipity__gallery-item--style-5 *, .ghostlabs-serendipity__gallery-item--style-5::before, .ghostlabs-serendipity__gallery-item--style-5::after {
+  .ghostlabs-serendipity__gallery-item--style-1 *, .ghostlabs-serendipity__gallery-item--style-1::before, .ghostlabs-serendipity__gallery-item--style-1::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }

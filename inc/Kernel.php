@@ -7,7 +7,6 @@ use GHOSTLABS\SERENDIPITY\Boot\TierBootFactory;
 use GHOSTLABS\SERENDIPITY\Contracts\TierBootInterface;
 use GHOSTLABS\SERENDIPITY\Service\AssetLoader;
 use GHOSTLABS\SERENDIPITY\Patterns\FreePatterns;
-use GHOSTLABS\SERENDIPITY\Service\AttributeGate;
 use GHOSTLABS\SERENDIPITY\Service\TilePriority;
 use GHOSTLABS\SERENDIPITY\Service\TileSize;
 use GHOSTLABS\SERENDIPITY\Service\BlockFactory;
@@ -54,7 +53,7 @@ final class Kernel
         PatternLibrary::provide(new FreePatterns());
 
         $this
-            ->defineAttributeGate()
+            ->defineTilePriority()
             ->defineFrontendAssets()
             ->defineTileSize()
             ->definePatterns()
@@ -69,14 +68,11 @@ final class Kernel
     }
 
     /**
-     * Normalize gallery attributes before anything reads them — see AttributeGate.
+     * Inside post content core decides `loading` after the render, tag by tag; this is
+     * where a lazy tile is also marked low priority. See TilePriority.
      */
-    private function defineAttributeGate(): static
+    private function defineTilePriority(): static
     {
-        $this->loader->add_filter('render_block_data', new AttributeGate(), 'normalize');
-
-        // Inside post content core decides `loading` after the render, tag by tag;
-        // this is where a lazy tile is also marked low priority. See TilePriority.
         $this->loader->add_filter('wp_content_img_tag', new TilePriority(), 'lower', 10, 3);
 
         return $this;
@@ -138,9 +134,9 @@ final class Kernel
      *
      * This used to return early unless a license check passed, which meant a build with
      * no license registered no blocks at all — there was nothing for a free edition to
-     * be. The block is the product and every edition ships it; what a license buys is
-     * decided per feature by Capabilities, at the editor, at attribute validation and at
-     * render, rather than by whether the block exists.
+     * be. The block is the product and every edition ships it. What an edition adds to it
+     * arrives through that edition's boot (`Service\GalleryExtensions`), rather than by
+     * whether the block exists.
      *
      * @throws Exception
      */

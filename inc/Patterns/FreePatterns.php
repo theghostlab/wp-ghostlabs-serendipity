@@ -13,10 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * The four starter patterns every edition ships.
  *
- * They use only settings the free edition has: no built-in carousel, and only the two
- * free hover styles — none, and Fade-Up. A starter pattern that inserted a locked
- * feature would be an upsell trap: the user would see a control they cannot use inside
- * something the plugin handed them, which reads as a bug and costs a rating.
+ * They use only what every edition renders: the lightbox modes of `Enum\Lightbox`, and
+ * the two hover styles every edition has — none, and Fade-Up.
  */
 final class FreePatterns implements PatternProviderInterface
 {
@@ -25,11 +23,6 @@ final class FreePatterns implements PatternProviderInterface
      * building any markup. `TierMatrixTest` holds the two together.
      */
     public const SLUGS = ['triptych', 'photo-essay', 'hero-mosaic', 'sidebar-story'];
-
-    public function capability(): ?string
-    {
-        return null;
-    }
 
     /**
      * @return array<string, array<string, mixed>>

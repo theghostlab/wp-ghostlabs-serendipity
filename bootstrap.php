@@ -21,32 +21,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Composer — are what serve their namespaces. They must therefore run before the
  * Composer autoloader below.
  *
- * This file ships in every edition, so it names no edition. It asks only what is
- * present in this build's vendor tree:
+ * This file ships in every edition, so it names no edition and no package beyond the
+ * one every other depends on. It registers whatever GhostLabs packages this build's
+ * vendor tree holds — each loader is `vendor/ghostlabs/<name>/<name>.php` — which is
+ * decided by the edition's manifest. The free edition's manifest requires none:
+ * shared/ carries its own DTO mapper, so the base edition can be published as source
+ * anyone can check out and install.
  *
- *   wp-kit      The options and REST contracts. Present only in editions whose
- *               manifest requires it — shared/ carries its own DTO mapper, so an
- *               edition can be built from this directory alone with no GhostLabs
- *               package at all. That is what lets the base edition be published as
- *               source anyone can check out and install.
- *   wp-license  Present only in builds whose manifest requires it.
- *
- * Kit first: it documents the dependency direction, and it is the order the second
+ * `wp-kit` first: it documents the dependency direction, and it is the order every other
  * package's own "is kit present?" diagnostic assumes.
- *
- * The file_exists guard is the whole mechanism. Which packages a build carries is
- * decided by its manifest, and this loop simply registers whatever it finds — so
- * an edition that omits one needs no branch here, and no knowledge of it.
  */
-foreach ( [ 'wp-kit/wp-kit.php', 'wp-license/wp-license.php' ] as $ghostlabs_serendipity_package ) {
-	$ghostlabs_serendipity_loader = __DIR__ . '/vendor/ghostlabs/' . $ghostlabs_serendipity_package;
+$ghostlabs_serendipity_packages = glob( __DIR__ . '/vendor/ghostlabs/*', GLOB_ONLYDIR ) ?: [];
+
+usort(
+	$ghostlabs_serendipity_packages,
+	static fn ( string $a, string $b ): int => [ basename( $a ) !== 'wp-kit', $a ] <=> [ basename( $b ) !== 'wp-kit', $b ]
+);
+
+foreach ( $ghostlabs_serendipity_packages as $ghostlabs_serendipity_package ) {
+	$ghostlabs_serendipity_loader = $ghostlabs_serendipity_package . '/' . basename( $ghostlabs_serendipity_package ) . '.php';
 
 	if ( file_exists( $ghostlabs_serendipity_loader ) ) {
 		require_once $ghostlabs_serendipity_loader;
 	}
 }
 
-unset( $ghostlabs_serendipity_package, $ghostlabs_serendipity_loader );
+unset( $ghostlabs_serendipity_packages, $ghostlabs_serendipity_package, $ghostlabs_serendipity_loader );
 
 // Load Composer autoloader (plugin's GHOSTLABS\SERENDIPITY classes load via PSR-4 from here).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
@@ -58,14 +58,9 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	return;
 }
 
-// Load text domain.
-add_action( 'init', function () {
-	load_plugin_textdomain(
-		'ghostlabs-serendipity',
-		false,
-		dirname( GHOSTLABS_SERENDIPITY_PLUGIN_SLUG ) . '/languages'
-	);
-} );
+// No text domain is loaded here. Core loads a plugin's language pack on its own, the first
+// time a string in its domain is asked for; an edition with no pack to deliver loads its own
+// translations from its boot class.
 
 // Boot the plugin.
 use GHOSTLABS\SERENDIPITY\Kernel;
@@ -74,6 +69,8 @@ add_action( 'plugins_loaded', function () {
 	try {
 		Kernel::getInstance()->init()->run();
 	} catch ( \Exception $e ) {
-		error_log( '[Serendipity] ' . $e->getMessage() );
+		// WordPress's debug channel: silent unless WP_DEBUG is on, then wherever the site sends
+		// PHP's own errors. Core runs the message through kses first.
+		wp_trigger_error( 'Serendipity', $e->getMessage(), E_USER_WARNING );
 	}
 }, 10 );

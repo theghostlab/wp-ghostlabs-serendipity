@@ -139,7 +139,7 @@ Privacy policy: https://theghostlab.io/privacy-policy
 
 1. A saved composition, and the same gallery at tablet width.
 2. Not in this plugin: Layout Studio, which Serendipity Deluxe adds — drag the seams between tiles, or nudge them with the arrow keys.
-3. The block's settings — gap, height, lightbox, hover style.
+3. The block's settings: gap, minimum height and hover style, a layout saved for each screen size, and links that a lightbox plugin you already run can pick up.
 4. The starter patterns in the inserter.
 
 == Source code ==

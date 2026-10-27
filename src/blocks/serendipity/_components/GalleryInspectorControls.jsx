@@ -9,7 +9,6 @@ import {
 	RangeControl,
 	SelectControl,
 	Button,
-	RadioControl,
 	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 	__experimentalText as Text,
 	Flex,
@@ -17,23 +16,61 @@ import {
 	__experimentalSpacer as Spacer,
 } from '@wordpress/components';
 import { select } from '@wordpress/data';
+import { applyFilters } from '@wordpress/hooks';
+import { hoverStyleInEffect, hoverStyleOptions } from '../_lib/stylesModel';
 import {
-	hoverRefusalCopy,
-	hoverRunning,
-	hoverStyleOptions,
-	isLockedHoverStyle,
-} from '../_lib/stylesModel';
-import {
-	LIGHTBOX,
-	LIGHTBOX_DEFAULT,
-	isLockedLightbox,
 	lightboxHelp,
+	lightboxInEffect,
+	lightboxModeFor,
 	lightboxOptions,
-	lightboxRefusalCopy,
-	lightboxRunning,
 } from '../_lib/lightboxModel';
-import RefusableSelect from './RefusableSelect';
+import { FILTER } from '../_lib/editionHooks';
 import { getLayout, isLayoutCurrent } from '../_lib/_blockUtils';
+
+/**
+ * The Hover Styles select every edition renders. An edition may replace it
+ * (`FILTER.HOVER_STYLE_CONTROL`); it is handed the same props.
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    The style in effect.
+ * @param {string}   props.stored   The block's own value.
+ * @param {Function} props.onChange Writes a style to the block.
+ * @param {Function} props.setAttributes Writes attributes, for a replacement that writes more.
+ * @return {JSX.Element} The select.
+ */
+const HoverStyleSelect = ( { value, onChange } ) => (
+	<SelectControl
+		label={ __( 'Hover Styles', 'ghostlabs-serendipity' ) }
+		value={ value }
+		options={ hoverStyleOptions() }
+		onChange={ onChange }
+		__next40pxDefaultSize
+		__nextHasNoMarginBottom
+	/>
+);
+
+/**
+ * The Lightbox select every edition renders. An edition may replace it
+ * (`FILTER.LIGHTBOX_CONTROL`); it is handed the same props.
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    The mode in effect.
+ * @param {string}   props.stored   The block's own value, resolved as `lightboxInEffect()` does.
+ * @param {Function} props.onChange Writes a mode to the block.
+ * @param {Function} props.setAttributes Writes attributes, for a replacement that writes more.
+ * @return {JSX.Element} The select.
+ */
+const LightboxSelect = ( { value, onChange } ) => (
+	<SelectControl
+		label={ __( 'Lightbox', 'ghostlabs-serendipity' ) }
+		value={ value }
+		options={ lightboxOptions() }
+		help={ lightboxHelp( value ) }
+		onChange={ onChange }
+		__next40pxDefaultSize
+		__nextHasNoMarginBottom
+	/>
+);
 
 /**
  * Inspector controls component for the Gallery block.
@@ -44,10 +81,10 @@ import { getLayout, isLayoutCurrent } from '../_lib/_blockUtils';
  * undone.
  *
  * @param {Object}   props                         - Component properties
- * @param {boolean}  props.carousel                - Legacy flag; superseded by props.lightbox
+ * @param {Object}   props.attributes              - The block's attributes, for what an edition adds
+ * @param {Function} props.setAttributes           - Writes attributes, for what an edition adds
  * @param {string}   props.lightbox                - Which lightbox a click opens
  * @param {Function} props.onLightbox              - Callback when the lightbox mode changes
- * @param {string}   props.controls                - Type of carousel controls to display
  * @param {string}   props.deviceType              - Current device type (mobile, tablet, desktop)
  * @param {string}   props.gap                     - Gap size between images
  * @param {string}   props.hoverStyle              - Style to apply on image hover
@@ -60,52 +97,34 @@ import { getLayout, isLayoutCurrent } from '../_lib/_blockUtils';
  * @param {Function} props.onRefreshLayout         - Callback to compose a new layout, left unsaved
  * @param {Function} props.onHoverStyle            - Callback when hover style changes
  * @param {Function} props.onThumbnailSize         - Callback when thumbnail size changes
- * @param {Function} props.onControls              - Callback when carousel controls change
  * @param {boolean}  props.debug
  * @param {string}   props.thumbnailSize           - The saved thumbnail size, what the control shows
- * @param {string}   props.imageResolution
- * @param {boolean}  props.showCarouselCaptions
- * @param {boolean}  props.autoplay                - Whether the carousel plays on its own
- * @param {number}   props.autoplayDelay           - Seconds per slide
- * @param {Function} props.onAutoplay              - Callback when autoplay is toggled
- * @param {Function} props.onAutoplayDelay         - Callback when the delay changes
  * @param {boolean}  props.mobileStackThumbnails
  * @param {Function} props.onMobileStackThumbnails
- * @param {Function} props.onImageResolution
- * @param {Function} props.onShowCarouselCaptions
  * @param {Function} props.onDebug
  * @return {JSX.Element} Inspector controls panel
  */
 const GalleryInspectorControls = ( {
-	carousel,
-	controls,
+	attributes,
+	setAttributes,
 	lightbox,
 	onLightbox,
 	debug,
 	deviceType,
 	gap,
-	imageResolution,
 	thumbnailSize,
 	hoverStyle,
 	layoutData,
 	imageCount,
 	minHeight,
-	showCarouselCaptions,
-	autoplay,
-	autoplayDelay,
-	onAutoplay,
-	onAutoplayDelay,
 	mobileStackThumbnails,
 	onMobileStackThumbnails,
 	onChangeGap,
 	onChangeMinHeight,
-	onImageResolution,
 	onSaveLayout,
 	onRefreshLayout,
 	onHoverStyle,
 	onThumbnailSize,
-	onControls,
-	onShowCarouselCaptions,
 	onDebug,
 } ) => {
 	const gapValue = parseInt( gap, 10 ) || 1;
@@ -122,18 +141,20 @@ const GalleryInspectorControls = ( {
 		value: slug,
 	} ) );
 
-	const imageResolutions = imageSizes
-		.map( ( { slug, name } ) => ( {
-			label: name,
-			value: slug,
-		} ) )
-		.filter( ( { value } ) => value !== 'thumbnail' );
-
 	// From the attribute, not a constant: this used to start at 'medium' whatever the
 	// block said, so a pattern inserted with 'large' showed Medium in the sidebar.
 	const thumbnailSizeValue = thumbnailSize || 'medium';
-	const lightboxValue =
-		lightbox || ( carousel ? LIGHTBOX.BUILT_IN : LIGHTBOX_DEFAULT );
+	const lightboxValue = lightboxInEffect( attributes );
+	const LightboxSettings = lightboxModeFor( lightboxValue )?.Settings;
+
+	const HoverStyleControl = applyFilters(
+		FILTER.HOVER_STYLE_CONTROL,
+		HoverStyleSelect
+	);
+	const LightboxControl = applyFilters(
+		FILTER.LIGHTBOX_CONTROL,
+		LightboxSelect
+	);
 
 	return (
 		<InspectorControls>
@@ -184,22 +205,11 @@ const GalleryInspectorControls = ( {
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 				/>
-				{ /*
-				 * The licensed three answer the click: the block keeps its style, and the
-				 * notice names the pick and the style still in effect. See RefusableSelect.
-				 */ }
-				<RefusableSelect
-					label={ __( 'Hover Styles', 'ghostlabs-serendipity' ) }
+				<HoverStyleControl
+					value={ hoverStyleInEffect( hoverStyle ) }
 					stored={ hoverStyle }
-					options={ hoverStyleOptions }
-					isLocked={ isLockedHoverStyle }
-					copy={ ( notice ) =>
-						hoverRefusalCopy( {
-							...notice,
-							running: hoverRunning( hoverStyle ),
-						} )
-					}
 					onChange={ onHoverStyle }
+					setAttributes={ setAttributes }
 				/>
 				{ deviceType === 'Mobile' ? (
 					<Spacer marginTop={ 6 }>
@@ -263,154 +273,23 @@ const GalleryInspectorControls = ( {
 			</PanelBody>
 			<PanelBody
 				title={ __( 'Lightbox Settings', 'ghostlabs-serendipity' ) }
-				// Keyed off the stored value, which a refusal never writes: a block that holds
-				// the carousel opens here so its notice is seen; a refusal does not reopen it.
-				initialOpen={ lightboxValue === LIGHTBOX.BUILT_IN }
+				// A mode with settings of its own opens the panel, so they are seen.
+				initialOpen={ Boolean( LightboxSettings ) }
 			>
 				<Spacer marginTop={ 8 }>
-					<RefusableSelect
-						label={ __( 'Lightbox', 'ghostlabs-serendipity' ) }
-						stored={ lightboxValue }
-						options={ lightboxOptions }
-						isLocked={ isLockedLightbox }
-						copy={ ( notice ) =>
-							lightboxRefusalCopy( {
-								...notice,
-								running: lightboxRunning( lightboxValue ),
-							} )
-						}
-						// The help describes the mode in effect: a locked carousel renders as
-						// "Your lightbox plugin", so explaining the carousel here would describe
-						// something this site does not do.
-						help={ ( value ) =>
-							lightboxHelp( lightboxRunning( value ) )
-						}
+					<LightboxControl
+						value={ lightboxValue }
+						stored={ lightbox || lightboxValue }
 						onChange={ onLightbox }
+						setAttributes={ setAttributes }
 					/>
 				</Spacer>
-				{ /*
-				 * 🔴 Only where the carousel is granted. A free build holding `builtin` (a post
-				 * from a licensed site, a lapsed license) once rendered every carousel control
-				 * here, selling a feature the edition does not have and cannot render.
-				 */ }
-				{ lightboxValue === LIGHTBOX.BUILT_IN &&
-					! isLockedLightbox( lightboxValue ) && (
-						<>
-							{ /*
-							 * Image Resolution is the size the built-in carousel opens (owner,
-							 * 2026-10-12). It sat in Layout Settings doing nothing: the render
-							 * resolved it and never used it. Here, it shows only where it acts.
-							 */ }
-							<Spacer marginTop={ 6 }>
-								<SelectControl
-									label={ __(
-										'Image Resolution',
-										'ghostlabs-serendipity'
-									) }
-									help={ __(
-										'The size each photograph opens at in the carousel.',
-										'ghostlabs-serendipity'
-									) }
-									value={ imageResolution }
-									options={ imageResolutions }
-									onChange={ onImageResolution }
-									__next40pxDefaultSize
-									__nextHasNoMarginBottom
-								/>
-							</Spacer>
-							<Spacer marginTop={ 6 }>
-								<RadioControl
-									label={ __(
-										'Carousel Controls',
-										'ghostlabs-serendipity'
-									) }
-									help={ __(
-										'Choose which additional controls to display in the carousel.',
-										'ghostlabs-serendipity'
-									) }
-									selected={ controls }
-									options={ [
-										{
-											label: __(
-												'Dot Navigation',
-												'ghostlabs-serendipity'
-											),
-											value: 'dot-navigation',
-										},
-										{
-											label: __(
-												'Snap Display',
-												'ghostlabs-serendipity'
-											),
-											value: 'snap-display',
-										},
-										{
-											label: __(
-												'None',
-												'ghostlabs-serendipity'
-											),
-											value: 'none',
-										},
-									] }
-									onChange={ onControls }
-								/>
-							</Spacer>
-							<Spacer marginTop={ 3 }>
-								<CheckboxControl
-									__nextHasNoMarginBottom
-									label={ __(
-										'Show carousel captions',
-										'ghostlabs-serendipity'
-									) }
-									help={ __(
-										'Enable captions to be displayed on carousel',
-										'ghostlabs-serendipity'
-									) }
-									checked={ showCarouselCaptions }
-									onChange={ onShowCarouselCaptions }
-								/>
-							</Spacer>
-
-							{ /*
-							 * Autoplay only exists for the built-in carousel, which is
-							 * licensed — so it needs no gate beyond the one the mode
-							 * already carries. A free build cannot select the mode, and
-							 * a block that claims it anyway is rewritten before render.
-							 */ }
-							<Spacer marginTop={ 3 }>
-								<CheckboxControl
-									__nextHasNoMarginBottom
-									label={ __(
-										'Play as a slideshow',
-										'ghostlabs-serendipity'
-									) }
-									help={ __(
-										'Advance on its own until the visitor takes over. Ignored for anyone who has asked for reduced motion.',
-										'ghostlabs-serendipity'
-									) }
-									checked={ autoplay }
-									onChange={ onAutoplay }
-								/>
-							</Spacer>
-
-							{ autoplay && (
-								<Spacer marginTop={ 3 }>
-									<RangeControl
-										__nextHasNoMarginBottom
-										label={ __(
-											'Seconds per slide',
-											'ghostlabs-serendipity'
-										) }
-										value={ autoplayDelay }
-										min={ 2 }
-										max={ 15 }
-										step={ 1 }
-										onChange={ onAutoplayDelay }
-									/>
-								</Spacer>
-							) }
-						</>
-					) }
+				{ LightboxSettings && (
+					<LightboxSettings
+						attributes={ attributes }
+						setAttributes={ setAttributes }
+					/>
+				) }
 			</PanelBody>
 		</InspectorControls>
 	);

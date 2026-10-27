@@ -47,6 +47,27 @@ final class AssetLoader
 
     private ?bool $needed = null;
 
+    /** @var list<string> Style handles an edition loads wherever the gallery's own loads. */
+    private static array $alongside = [];
+
+    /**
+     * Load an edition's stylesheet with the gallery's, after it: in the head when the sniff
+     * finds a gallery, and at render when it did not. Registered by the edition, with the
+     * gallery's handle as its dependency.
+     */
+    public static function alongside(string $styleHandle): void
+    {
+        if ( ! in_array($styleHandle, self::$alongside, true)) {
+            self::$alongside[] = $styleHandle;
+        }
+    }
+
+    /** Test seam: forget every stylesheet an edition added. */
+    public static function reset(): void
+    {
+        self::$alongside = [];
+    }
+
     /**
      * The plugin's URL without its trailing slash.
      *
@@ -89,25 +110,6 @@ final class AssetLoader
             true
         );
 
-        wp_localize_script( self::HANDLE, 'ghostlabsSerendipityA11y', [
-            'previousImage'            => __( 'Previous image', 'ghostlabs-serendipity' ),
-            'nextImage'                => __( 'Next image', 'ghostlabs-serendipity' ),
-            'previousImageUnavailable' => __( 'Previous image (unavailable)', 'ghostlabs-serendipity' ),
-            'nextImageUnavailable'     => __( 'Next image (unavailable)', 'ghostlabs-serendipity' ),
-            'imageCarousel'            => __( 'Image carousel', 'ghostlabs-serendipity' ),
-            'carouselImages'           => __( 'Carousel images', 'ghostlabs-serendipity' ),
-            /* translators: 1: the image's position, 2: how many images the gallery has. */
-            'imageXofY'                => __( 'Image %1$s of %2$s', 'ghostlabs-serendipity' ),
-            /* translators: %1$s: a slide's position in the carousel. */
-            'goToSlide'                => __( 'Go to slide %1$s', 'ghostlabs-serendipity' ),
-            'closeDialog'              => __( 'Close dialog', 'ghostlabs-serendipity' ),
-            'pauseSlideshow'           => __( 'Pause slideshow', 'ghostlabs-serendipity' ),
-            /* translators: 1: the image's position, 2: how many images, 3: its caption. */
-            'imageXofYCaption'         => __( 'Image %1$s of %2$s: %3$s', 'ghostlabs-serendipity' ),
-            /* translators: The carousel's visible count. 1: the slide shown, 2: how many slides. */
-            'slideCount'               => __( '%1$s / %2$s', 'ghostlabs-serendipity' ),
-        ] );
-
         if ($this->pageUsesGallery()) {
             self::enqueue();
         }
@@ -125,6 +127,10 @@ final class AssetLoader
     {
         wp_enqueue_style(self::HANDLE);
         wp_enqueue_script(self::HANDLE);
+
+        foreach (self::$alongside as $handle) {
+            wp_enqueue_style($handle);
+        }
     }
 
     /**
@@ -203,6 +209,11 @@ final class AssetLoader
      * ⚠️ Only widgets placed in a sidebar. `widget_block` holds every block widget ever made,
      * including ones parked in Inactive Widgets or orphaned by a theme switch; those render
      * nowhere, and reading them put the assets on every page of the site.
+     *
+     * Asked of core's `is_active_widget()`, which skips both of those when `$skip_inactive` is
+     * true and honors the `sidebars_widgets` filter, so a widget another plugin hides is not
+     * counted. ⚠️ It reads `$wp_registered_widgets[ $id ]['id']` without checking it exists, so
+     * a widget left in the option but never registered is passed over first: it cannot render.
      */
     private function widgetsHaveGallery(): bool
     {
@@ -212,22 +223,12 @@ final class AssetLoader
             return false;
         }
 
-        $placed = [];
-
-        foreach (wp_get_sidebars_widgets() as $sidebar => $ids) {
-            if ($sidebar === 'wp_inactive_widgets' || str_starts_with((string) $sidebar, 'orphaned_widgets') || ! is_array($ids)) {
-                continue;
-            }
-
-            foreach ($ids as $id) {
-                if (is_string($id) && preg_match('/^block-(\d+)$/', $id, $m)) {
-                    $placed[(int) $m[1]] = true;
-                }
-            }
-        }
+        $registered = $GLOBALS['wp_registered_widgets'] ?? [];
 
         foreach ($widgets as $number => $widget) {
-            if ( ! isset($placed[(int) $number])) {
+            $id = 'block-' . $number;
+
+            if ( ! is_int($number) || ! isset($registered[ $id ]) || ! is_active_widget(false, $id, 'block', true)) {
                 continue;
             }
 

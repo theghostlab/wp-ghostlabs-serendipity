@@ -3,7 +3,7 @@
         'name' => 'ghostlabs/serendipity-free',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '12d04a3e841e5e8330a8e6f300dac58b9bd8a9b0',
+        'reference' => '6fdb9e389f13fcc22cca6cb257a473f7a610803c',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'ghostlabs/serendipity-free' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '12d04a3e841e5e8330a8e6f300dac58b9bd8a9b0',
+            'reference' => '6fdb9e389f13fcc22cca6cb257a473f7a610803c',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

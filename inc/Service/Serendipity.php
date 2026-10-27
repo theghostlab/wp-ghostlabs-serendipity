@@ -2,6 +2,8 @@
 
 namespace GHOSTLABS\SERENDIPITY\Service;
 
+use GHOSTLABS\SERENDIPITY\Contracts\HoverStyleInterface;
+use GHOSTLABS\SERENDIPITY\Contracts\LightboxModeInterface;
 use GHOSTLABS\SERENDIPITY\DTO\Input\AttributesDto;
 use GHOSTLABS\SERENDIPITY\DTO\Input\LayoutDataDto;
 use GHOSTLABS\SERENDIPITY\DTO\Input\RawImageDto;
@@ -21,27 +23,34 @@ class Serendipity
      */
     private const CONTEXT = 'ghostlabs_serendipity_gallery';
 
-    private ?Lightbox $lightbox = null;
+    /**
+     * The hover style every edition renders: Fade-Up. '' is None. Anything else is an
+     * extension's (GalleryExtensions), or unknown — and an unknown style renders as this one,
+     * so a gallery that asked for a hover treatment still gets one.
+     */
+    private const FADE_UP = 'style-1';
+
+    private Lightbox|LightboxModeInterface|null $lightbox = null;
 
     /** Built once per render; every tile asks it for its share of the container. */
     private ?LayoutResolver $resolver = null;
 
-    /** @var array<array{
-     *  src: string,
-     *  caption: string,
-     *  alt: string,
-     *  filename: string,
-     * }>
-     */
-    private array $carouselImages = [];
-
-    /** The rendering post's author, resolved once: null until asked, 0 for no post. */
-    private ?int $author = null;
+    /** Which images may be rendered; asked once per render. */
+    private readonly ImageAccess $access;
 
     /** The DOM id this gallery renders with; see GalleryIds. Claimed once, on first use. */
     private ?string $domId = null;
 
-    public function __construct(private readonly AttributesDto $attributes){}
+    /**
+     * @param array<string, mixed> $raw The block's attributes as parsed, for an extension that
+     *                                  reads one the gallery itself does not.
+     */
+    public function __construct(
+        private readonly AttributesDto $attributes,
+        private readonly array $raw = [],
+    ) {
+        $this->access = new ImageAccess();
+    }
 
     /**
      * The id the container, the styles and the inline script are keyed to. Never the saved
@@ -53,35 +62,24 @@ class Serendipity
     }
 
     /**
-     * The lightbox mode this gallery actually renders with.
+     * The lightbox mode this gallery renders with: one an edition's extension claims, or one
+     * of the modes every edition has.
      *
-     * Deliberately not read straight from the attribute. This is the third of the three
-     * gates, and the only one that helps for content that already exists: the editor
-     * disables what an edition cannot use and the DTO rejects it on save, but neither
-     * does anything for a post pasted from a licensed site, a database restored into a
-     * free install, or a license that has since lapsed. Whatever the saved attribute
-     * says, a build without the capability renders the free mode.
-     *
-     * Falling back to Own rather than None matters: the tile keeps its anchor, so a
-     * third-party lightbox still works and the image is still reachable. Degrading,
-     * not breaking.
+     * A stored value no mode recognizes renders as `Lightbox::DEFAULT`. The tile keeps its
+     * anchor, so a third-party lightbox still works and the image is still reachable.
      */
-    private function lightbox(): Lightbox
+    private function lightbox(): Lightbox|LightboxModeInterface
     {
-        if ($this->lightbox !== null) {
-            return $this->lightbox;
-        }
+        return $this->lightbox ??= GalleryExtensions::lightboxMode($this->raw)
+            ?? Lightbox::fromAttribute($this->attributes->lightbox ?? null);
+    }
 
-        $requested = Lightbox::fromLegacyCarousel(
-            $this->attributes->lightbox ?? null,
-            $this->attributes->carousel ?? false
-        );
+    /** What the gallery declares in `data-lightbox`. */
+    private function lightboxValue(): string
+    {
+        $lightbox = $this->lightbox();
 
-        if ($requested->isLicensed() && ! Capabilities::has(Capabilities::BUILT_IN_LIGHTBOX)) {
-            $requested = Lightbox::DEFAULT;
-        }
-
-        return $this->lightbox = $requested;
+        return $lightbox instanceof LightboxModeInterface ? $lightbox->value() : $lightbox->value;
     }
 
     /** @return array<array{
@@ -112,14 +110,14 @@ class Serendipity
             // empty. Without this, every pattern in the inserter previews as the same
             // "Add Images" placeholder.
             if ((int) $image->id <= 0) {
-                if (self::isWebUrl((string) $image->url)) {
+                if (ImageAccess::webUrl((string) $image->url)) {
                     $images[] = $this->imageFromUrl($image, (int) $index);
                 }
 
                 continue;
             }
 
-            if ( ! $this->renderableAttachment((int) $image->id)) {
+            if ( ! $this->access->attachment((int) $image->id)) {
                 continue;
             }
 
@@ -220,74 +218,15 @@ class Serendipity
     }
 
     /**
-     * Whether an attachment may be rendered for this gallery: it exists, and the post's author
-     * could read it.
-     *
-     * ⚠️ An attachment ID is author data. Every ID used to resolve to its URL and filename
-     * whatever the attachment's privacy, so a contributor could name the ID of an image attached
-     * to a private post and preview its URL (plugin audit, 2026-10-16). The question is the
-     * author's, never the viewer's: an editor's own picks — the media library offers only what
-     * they can read — keep rendering for every visitor. With no post in context (a template or
-     * a widget, which only an administrator edits) there is no author to ask.
-     *
-     * ⚠️ Except over REST. Core's block renderer, called with no `post_id`, needs only
-     * `edit_posts`, so a contributor reached the no-post path and every ID rendered again
-     * (re-audit, 2026-10-17, S2). There the requester is asked instead.
-     */
-    private function renderableAttachment(int $id): bool
-    {
-        if (wp_get_attachment_image_src($id, 'full') === false) {
-            return false;
-        }
-
-        if ($this->author === null) {
-            $post = get_post();
-            $this->author = $post instanceof \WP_Post ? (int) $post->post_author : 0;
-        }
-
-        if ($this->author !== 0) {
-            return user_can($this->author, 'read_post', $id);
-        }
-
-        return ! self::isRestRequest() || current_user_can('read_post', $id);
-    }
-
-    /** `wp_is_serving_rest_request()` arrived in 6.5; this plugin supports 6.4. */
-    private static function isRestRequest(): bool
-    {
-        if (function_exists('wp_is_serving_rest_request')) {
-            return wp_is_serving_rest_request();
-        }
-
-        return defined('REST_REQUEST') && REST_REQUEST;
-    }
-
-    /**
      * A value for the inline script, with `<`, `>` and `&` hex-escaped.
      *
      * ⚠️ kses keeps HTML comments, so an author's caption can carry `<!--` and `<script` into
-     * the carousel payload. wp_json_encode() escapes `/` and not `<`, and `<!--<script>` inside
+     * the inline store. wp_json_encode() escapes `/` and not `<`, and `<!--<script>` inside
      * a script element changes how the browser finds its end (plugin audit, 2026-10-16).
      */
     private static function scriptJson(mixed $value): string
     {
         return (string) wp_json_encode($value, JSON_HEX_TAG | JSON_HEX_AMP);
-    }
-
-    /**
-     * Whether a URL-only image's address may be rendered at all.
-     *
-     * ⚠️ The address is author-supplied, and kses does not check the scheme of a string
-     * block attribute — it only strips tags. A contributor could save `javascript:` as an
-     * image URL and have it rendered as the tile's href (plugin audit, 2026-10-16). Only
-     * http(s) is an image; anything else, including a scheme parse_url cannot read, is
-     * refused rather than repaired.
-     */
-    private static function isWebUrl(string $url): bool
-    {
-        $scheme = parse_url(trim($url), PHP_URL_SCHEME);
-
-        return is_string($scheme) && in_array(strtolower($scheme), ['http', 'https'], true);
     }
 
     /**
@@ -320,7 +259,7 @@ class Serendipity
     private function imageFromUrl(RawImageDto $image, int $index = 0): array
     {
         $url = (string) $image->url;
-        $path = (string) parse_url($url, PHP_URL_PATH);
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
 
         return $this->describe([
             'thumbnail' => $url,
@@ -360,14 +299,9 @@ class Serendipity
 
         $lightbox = $this->lightbox();
 
-        // The built-in lightbox has no URL to link to, so the thing that opens it is a
-        // real <button>: focusable, and Enter and Space click it, with nothing scripted
-        // about the keys. The carousel returns focus to it on close. It opens a modal dialog,
-        // and says so before it is pressed (re-audit, 2026-10-17, A1).
-        if ($lightbox === Lightbox::BuiltIn) {
-            $attrs = ['type' => 'button', 'class' => 'ghostlabs-serendipity__trigger', 'aria-haspopup' => 'dialog'] + $this->triggerName($image);
-
-            return '<button' . $this->renderAttributes($attrs) . '>' . $img . '</button>';
+        // A mode an edition added opens something of its own, so it says what opens it.
+        if ($lightbox instanceof LightboxModeInterface) {
+            return $lightbox->trigger($img, $this->triggerName($image));
         }
 
         if ( ! $lightbox->emitsAnchor()) {
@@ -402,7 +336,7 @@ class Serendipity
         /**
          * Filter the anchor attributes for a gallery tile.
          *
-         * The four unlicensed modes exist so a site can use the lightbox it already has,
+         * The four modes every edition has exist so a site can use the lightbox it already has,
          * and the ones this plugin was tested against are not the only ones. This is how
          * a site or a compatibility shim adds data-fancybox, data-lbwps-gid or anything
          * else without patching the render.
@@ -563,13 +497,6 @@ class Serendipity
                     }
                 }
 
-                // 🔴 A crop is the `pan-tilt` capability. The first-paint CSS already drops it
-                // without one; the payload has to as well, or the bundle applies it anyway.
-                // Clamped on read: the stored layout keeps the crop for an upgrade back.
-                if ( ! empty($rectangle['objectPosition']) && Capabilities::has(Capabilities::PAN_TILT)) {
-                    $trimmed['objectPosition'] = $rectangle['objectPosition'];
-                }
-
                 $rectangles[] = $trimmed;
             }
 
@@ -668,10 +595,6 @@ class Serendipity
     {
         $tmp =  $this->setImage($image);
 
-        if($this->hoverStyle() === "style-5") {
-            $tmp = '<div class="front">'.$tmp.'</div>';
-        }
-
         $linkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" data-icon="SvgLink" aria-hidden="true"><path d="M10.8 17.8l-1.512 1.513L8.6 20A3.2 3.2 0 014 20m0 0a3.2 3.2 0 010-4.6l2.45-2.45L8.9 10.5a3.284 3.284 0 012.112-.975 3.231 3.231 0 012.188.675m.2-4.2l1.413-1.412L15.4 4A3.253 3.253 0 1120 8.6l-2.45 2.45-2.45 2.45a3.143 3.143 0 01-2.012 1A3.2 3.2 0 0111 14"></path></svg>';
         $caption = empty($image['caption']) ? $linkSvg : esc_html($image['caption']);
 
@@ -689,12 +612,11 @@ class Serendipity
                 : $tmp . '<div class="ghostlabs-serendipity__caption-band"' . $hidden . '>' . esc_html($image['caption']) . '</div>';
         }
 
-        return match($this->hoverStyle()) {
-            'style-5' => $tmp.'<div class="back"><div class="caption"'.$hidden.'>'.$caption.'</div></div>',
-            'style-3' => $tmp.'<div class="caption-container"'.$hidden.'><div class="caption">'.$caption.'</div></div>',
-            'style-2' => $tmp.'<div class="caption"'.$hidden.'>'.$caption.'</div>',
-            default => $tmp.'<div class="caption"'.$hidden.'>'.esc_html($image['caption']).'</div>',
-        };
+        $style = $this->hoverStyleExtension();
+
+        return $style !== null
+            ? $style->tile($tmp, $caption, $hidden)
+            : $tmp.'<div class="caption"'.$hidden.'>'.esc_html($image['caption']).'</div>';
     }
 
     private function getAlignment(): string {
@@ -709,92 +631,9 @@ class Serendipity
         return ' ghostlabs-serendipity--stack-on-mobile';
     }
 
-    /** @return array<array{
-     *  src: string,
-     *  caption: string,
-     *  alt: string,
-     *  filename: string,
-     * }>
-     */
-    private function getCarouselImages(): array
-    {
-        foreach ($this->attributes->rawImages as $image)
-        {
-            if ((int) $image->id <= 0) {
-                $url = (string) $image->url;
-
-                // The gallery's rule, so the carousel's slides stay index-for-index with
-                // its tiles.
-                if ( ! self::isWebUrl($url)) {
-                    continue;
-                }
-
-                $this->carouselImages[] = [
-                    'src' => $url,
-                    'caption' => (string) $image->caption,
-                    'alt' => (string) $image->alt,
-                    'filename' => pathinfo(basename((string) parse_url($url, PHP_URL_PATH)), PATHINFO_FILENAME),
-                ];
-
-                continue;
-            }
-
-            // Image Resolution is the size the carousel opens (owner, 2026-10-12). It was read
-            // and never used while this was fixed at `large`. An empty value keeps `large`.
-            // The gallery's rule, so the slides stay index-for-index with the tiles.
-            if ( ! $this->renderableAttachment((int) $image->id)) {
-                continue;
-            }
-
-            $size = $this->attributes->imageResolution !== '' ? $this->attributes->imageResolution : 'large';
-            $src = wp_get_attachment_image_src($image->id, $size);
-
-            if ($src === false) {
-                continue;
-            }
-
-            $file_path = get_attached_file( $image->id );
-            $filename = basename( $file_path );
-
-            // Same rule as the gallery: described or decorative, never branded. The
-            // carousel renders the caption under the image, so an alt borrowed from it
-            // would be announced twice here too.
-            $alt = get_post_meta($image->id, '_wp_attachment_image_alt', true);
-
-            $this->carouselImages[] = [
-                'src' => $src[0],
-                'caption' => $image->caption,
-                'alt' => $alt,
-                'filename' => pathinfo($filename, PATHINFO_FILENAME),
-            ];
-        }
-
-        return $this->carouselImages;
-    }
-
     /**
-     * The slideshow's settings, or null when it is off.
-     *
-     * Clamped rather than trusted: the delay reaches the browser as a timer, and a zero
-     * would spin the carousel as fast as it can paint. 2 to 15 seconds is long enough to
-     * look at a photograph and short enough not to look broken.
-     *
-     * @return array{delay: int}|null
-     */
-    private function autoplay(): ?array
-    {
-        if (empty($this->attributes->autoplay)) {
-            return null;
-        }
-
-        return [
-            'delay' => max(2, min(15, (int) ($this->attributes->autoplayDelay ?? 5))),
-        ];
-    }
-
-    /**
-     * The hover style this gallery actually renders with — the third gate, and the only
-     * one that helps for a block that never passed through this build's editor.
+     * The hover style this gallery renders with: None, Fade-Up, or one an edition's extension
+     * renders (GalleryExtensions).
      */
     private function hoverStyle(): string
     {
@@ -810,16 +649,22 @@ class Serendipity
         // ⚠️ An allow-list, not a pass-through. The attribute is a free string and kses
         // leaves quotes in it, so a contributor could save one that closes the class
         // attribute and opens an event handler (plugin audit, 2026-10-16). '' is None.
-        $known = ['', Capabilities::FREE_HOVER_STYLE, ...Capabilities::LICENSED_HOVER_STYLES];
-
-        if ( ! in_array($style, $known, true)) {
-            return Capabilities::FREE_HOVER_STYLE;
+        if ($style === '' || $style === self::FADE_UP || $this->hoverStyleExtension($style) !== null) {
+            return $style;
         }
 
-        return in_array($style, Capabilities::LICENSED_HOVER_STYLES, true)
-            && ! Capabilities::has(Capabilities::HOVER_STYLES_EXTENDED)
-                ? Capabilities::FREE_HOVER_STYLE
-                : $style;
+        return self::FADE_UP;
+    }
+
+    /** @var array<string, HoverStyleInterface>|null Asked once per render. */
+    private ?array $hoverStyles = null;
+
+    /** The extension that renders this gallery's hover style, or null for one every edition renders. */
+    private function hoverStyleExtension(?string $style = null): ?HoverStyleInterface
+    {
+        $this->hoverStyles ??= GalleryExtensions::hoverStyles();
+
+        return $this->hoverStyles[$style ?? $this->hoverStyle()] ?? null;
     }
 
     private function setHoverStyle(string $hoverStyle): string
@@ -909,12 +754,11 @@ class Serendipity
             $nth = $item . ':nth-child(' . ((int) $index + 1) . ')';
             $tiles .= $nth . '{' . $box . '}';
 
-            $objectPosition = Capabilities::has(Capabilities::PAN_TILT)
-                ? $this->position($rectangle['objectPosition'] ?? null)
-                : '';
+            // What an edition adds to a tile's image, from the same rectangle. Already validated.
+            $imageCss = GalleryExtensions::tileImageCss($rectangle);
 
-            if ($objectPosition !== '') {
-                $tiles .= $nth . ' img{object-position:' . $objectPosition . ';}';
+            if ($imageCss !== '') {
+                $tiles .= $nth . ' img{' . $imageCss . '}';
             }
         }
 
@@ -1032,18 +876,6 @@ class Serendipity
         return preg_match('/^\d+(\.\d+)?\s*\/\s*\d+(\.\d+)?$/', $value) === 1 ? $value : '';
     }
 
-    private function position(mixed $value): string
-    {
-        if ( ! is_string($value)) {
-            return '';
-        }
-
-        $value = trim($value);
-        $term  = '(-?\d+(\.\d+)?(px|%)|left|right|center|top|bottom)';
-
-        return preg_match('/^' . $term . '(\s+' . $term . ')?$/', $value) === 1 ? $value : '';
-    }
-
     public function render(): string
     {
         $images = $this->getImages();
@@ -1054,17 +886,16 @@ class Serendipity
         // case and the only one that gets them into the head.
         AssetLoader::enqueue();
 
-        // Nothing is enqueued for the carousel here any more. The gallery declares the
-        // lightbox mode it resolved to, and the gallery bundle fetches the edition's
-        // enhancement — if the edition offered one — on the first click of a gallery
-        // that needs it. Shared code still names no file: the edition that ships the
-        // carousel publishes where it lives, next to the gallery bundle.
+        // Nothing else is enqueued here. The gallery declares the lightbox mode it resolved
+        // to, and where an edition added a mode of its own, the gallery bundle fetches that
+        // edition's enhancement on the first click of a gallery that needs it. Shared code
+        // names no file: the edition publishes where its enhancement lives.
         $tmp = $this->layoutStyles(count($images));
 
         $tmp .= '<ul
             id="' . esc_attr($this->domId()) . '"
             class="ghostlabs-serendipity ghostlabs-serendipity--gallery-loading' . $this->getAlignment() . $this->getMobileStackThumbnails() . '"
-            data-lightbox="' . esc_attr($this->lightbox()->value) . '"
+            data-lightbox="' . esc_attr($this->lightboxValue()) . '"
             data-gap="' . esc_attr($this->attributes->gap) . '"
             data-min-height="' . esc_attr($this->attributes->minHeight) . '"
             data-debug="' . esc_attr($this->attributes->debug) . '"
@@ -1075,14 +906,14 @@ class Serendipity
             // A list item and nothing else. It used to carry role="button" and a
             // tabindex, which took its list-item role away — to assistive tech a list
             // of buttons is not a list. What opens the image is inside: the link, or
-            // for the built-in lightbox a real button. See setImage().
+            // whatever an edition's own mode opens it with. See setImage().
             $tmp .= '<li class="ghostlabs-serendipity__gallery-item ' . esc_attr($this->setHoverStyle($this->hoverStyle())) . '" data-caption="' . esc_attr($image['caption']) . '">';
 
             $tmp .= $this->caption($image);
 
             // The focus ring is its own element, above every hover style's overlay: drawn on the
-            // trigger it sat under Split Reveal's and Zoom and Blur Focus's overlays and turned
-            // away with Card Flip's card (accessibility audit, 2026-10-16, #15). Decorative.
+            // trigger it sat under the overlays and turned away with a card that flips
+            // (accessibility audit, 2026-10-16, #15). Decorative.
             if ($this->lightbox() !== Lightbox::None) {
                 $tmp .= '<span class="ghostlabs-serendipity__focus-ring" aria-hidden="true"></span>';
             }
@@ -1108,13 +939,18 @@ class Serendipity
             window.GhostLabsSerendipityGallery[' . $safeId . ']["layoutData"] = ' . self::scriptJson($this->layoutPayload()) . ';
         </script>';
 
-        if($this->lightbox() === Lightbox::BuiltIn) {
-            $tmp .= '<script>
-                window.GhostLabsSerendipityGallery[' . $safeId . ']["carouselImages"] = ' . self::scriptJson($this->getCarouselImages()) . ';
-                window.GhostLabsSerendipityGallery[' . $safeId . ']["controls"] = ' . self::scriptJson($this->attributes->controls) . ';
-                window.GhostLabsSerendipityGallery[' . $safeId . ']["showCarouselCaptions"] = ' . self::scriptJson($this->attributes->showCarouselCaptions) . ';
-                window.GhostLabsSerendipityGallery[' . $safeId . ']["autoplay"] = ' . self::scriptJson($this->autoplay()) . ';
-                </script>';
+        $lightbox = $this->lightbox();
+
+        if ($lightbox instanceof LightboxModeInterface) {
+            $entries = '';
+
+            foreach ($lightbox->store($this->attributes, $this->raw, $this->access) as $key => $value) {
+                $entries .= 'window.GhostLabsSerendipityGallery[' . $safeId . '][' . self::scriptJson((string) $key) . '] = ' . self::scriptJson($value) . ';';
+            }
+
+            if ($entries !== '') {
+                $tmp .= '<script>' . $entries . '</script>';
+            }
         }
 
         return $tmp;

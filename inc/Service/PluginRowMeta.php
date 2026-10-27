@@ -38,8 +38,12 @@ final class PluginRowMeta
          */
         // Typed `mixed` on purpose: any plugin can answer a public filter, with anything, and a
         // non-array here would fatal the Plugins screen on this method's return type.
+        //
+        // ⚠️ Named by its literal, which is `FILTER`'s value (`PluginRowMetaTest` expects it by the
+        // constant). Plugin Check cannot resolve a class constant, and reports a hook it cannot read
+        // as one it cannot prove is prefixed.
         /** @var mixed $filtered */
-        $filtered = apply_filters(self::FILTER, $meta);
+        $filtered = apply_filters('ghostlabs_serendipity_plugin_row_meta', $meta);
 
         return is_array($filtered) ? $filtered : $meta;
     }
