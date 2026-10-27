@@ -36,6 +36,12 @@ final class AssetLoader
     /** Style and script share a handle; both are `ghostlabs-serendipity`. */
     public const HANDLE = 'ghostlabs-serendipity';
 
+    /**
+     * The galleries' first-paint geometry: a stylesheet with no file, which only ever carries
+     * what `addLayoutCss()` adds to it, printed after the gallery's own.
+     */
+    public const LAYOUT_HANDLE = 'ghostlabs-serendipity-layout';
+
     private const BLOCK = 'ghostlabs/serendipity';
 
     /**
@@ -81,38 +87,92 @@ final class AssetLoader
     }
 
     /**
-     * Register both assets and, when this page has a gallery on it, enqueue them.
+     * Register the assets and, when this page has a gallery on it, enqueue them.
      *
-     * Runs on `wp_enqueue_scripts`, which fires inside `wp_head` — before the loop renders
-     * the content, so anything found here lands in the head.
+     * Runs on `wp_enqueue_scripts`, which fires inside `wp_head` — before a classic theme's
+     * loop renders the content, so anything found here lands in the head.
      */
     public function register(): void
+    {
+        self::registerAssets();
+
+        if ($this->pageUsesGallery()) {
+            self::enqueue();
+        }
+    }
+
+    /**
+     * Register every handle that is not registered yet.
+     *
+     * ⚠️ Not only from `wp_enqueue_scripts`. A block theme renders the page's content before
+     * `wp_head`, so a gallery renders before that hook has run — and `wp_add_inline_script()` /
+     * `wp_add_inline_style()` on a handle that is not registered yet drop what they were given
+     * without a word. `addGalleryData()` and `addLayoutCss()` register first for that reason.
+     */
+    public static function registerAssets(): void
     {
         $version = PluginConfig::$version;
 
 
-        wp_register_style(
-            self::HANDLE,
-            self::url('assets/css/ghostlabs-serendipity.css'),
-            [],
-            $version
-        );
+        if ( ! wp_style_is(self::HANDLE, 'registered')) {
+            wp_register_style(
+                self::HANDLE,
+                self::url('assets/css/ghostlabs-serendipity.css'),
+                [],
+                $version
+            );
+        }
 
         // No `wp-data`. The bundle imports nothing from @wordpress/data and never calls
         // select() or subscribe(); the dependency was inherited from the editor build. In
         // core, wp-data depends on wp-element, which depends on react and react-dom, so
         // declaring it pulled the whole React runtime onto every page of the site.
-        wp_register_script(
-            self::HANDLE,
-            self::url('assets/js/ghostlabs-serendipity-bundle.js'),
-            [],
-            $version,
-            true
-        );
-
-        if ($this->pageUsesGallery()) {
-            self::enqueue();
+        if ( ! wp_script_is(self::HANDLE, 'registered')) {
+            wp_register_script(
+                self::HANDLE,
+                self::url('assets/js/ghostlabs-serendipity-bundle.js'),
+                [],
+                $version,
+                true
+            );
         }
+
+        // No file: it carries only the inline geometry, after the stylesheet whose loading
+        // state that geometry cancels.
+        if ( ! wp_style_is(self::LAYOUT_HANDLE, 'registered')) {
+            wp_register_style(self::LAYOUT_HANDLE, false, [self::HANDLE], $version);
+        }
+    }
+
+    /**
+     * Hand the gallery bundle a gallery's data: inline, before the bundle, which reads it when
+     * it runs. Printed only where the bundle is, with it in the footer.
+     *
+     * WordPress.org's review (2026-10-27): no script element of the plugin's own.
+     */
+    public static function addGalleryData(string $script): void
+    {
+        self::registerAssets();
+
+        wp_add_inline_script(self::HANDLE, $script, 'before');
+    }
+
+    /**
+     * Add a gallery's first-paint geometry to the layout stylesheet, and ask for it.
+     *
+     * Core prints it in the head where the content renders before `wp_head` (a block theme),
+     * and with the late styles where it renders after (a classic theme) — the way it prints
+     * its own block-support CSS. On a classic theme the tiles wait behind the loading state
+     * until then, which is what that state is for.
+     *
+     * WordPress.org's review (2026-10-27): no style element of the plugin's own.
+     */
+    public static function addLayoutCss(string $css): void
+    {
+        self::registerAssets();
+
+        wp_add_inline_style(self::LAYOUT_HANDLE, $css);
+        wp_enqueue_style(self::LAYOUT_HANDLE);
     }
 
     /**

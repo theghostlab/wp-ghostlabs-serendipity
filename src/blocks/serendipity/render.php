@@ -12,5 +12,5 @@ use GHOSTLABS\SERENDIPITY\Service\BlockRender;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped as it is built (Serendipity::render()); it carries a <style> and a <script> that wp_kses_post() would strip.
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped as it is built (Serendipity::render()). Its data and its first-paint CSS go through wp_add_inline_script() and wp_add_inline_style(), not this markup.
 echo BlockRender::render( isset( $attributes ) && is_array( $attributes ) ? $attributes : [] );

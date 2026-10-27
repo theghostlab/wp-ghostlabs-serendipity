@@ -676,12 +676,13 @@ class Serendipity
      * The saved geometry, as CSS, so the gallery is laid out on the first paint.
      *
      * The composition is already known here — it was authored in the editor and saved
-     * with the block — but until now it was handed to the browser as JSON in a <script>
-     * tag, which means nothing is positioned until the bundle downloads, parses, waits
+     * with the block — but until now it was handed to the browser only as JSON for the
+     * bundle, which means nothing is positioned until the bundle downloads, parses, waits
      * for images and measures the container. Everything before that is a column of
      * full-width photographs hidden behind `--gallery-loading` and a spinner.
      *
-     * A <style> element rather than the inline `style` attributes the plan asked for:
+     * The CSS goes to `AssetLoader::addLayoutCss()`, never into the markup (WordPress.org's
+     * review, 2026-10-27). A stylesheet rather than the inline `style` attributes the plan asked for:
      * layouts are saved per breakpoint and an inline attribute cannot carry a media
      * query, so inline styles could only ever have served one of the three widths
      * correctly. The rules are keyed by `nth-child`, which is exactly how the rectangles
@@ -720,7 +721,7 @@ class Serendipity
             $blocks[] = sprintf('@media %s{%s}', $breakpoint->mediaQuery(), $rules);
         }
 
-        return $blocks === [] ? '' : '<style>' . implode('', $blocks) . '</style>';
+        return implode('', $blocks);
     }
 
     /**
@@ -856,7 +857,7 @@ class Serendipity
     }
 
     /**
-     * Everything below goes into a <style> element, where escaping does not apply and a
+     * Everything below goes into an inline stylesheet, where escaping does not apply and a
      * stray brace or a closing tag would end the block early. These are allow-lists, not
      * escapers: a value that is not obviously a CSS length, ratio or position is dropped.
      */
@@ -890,9 +891,13 @@ class Serendipity
         // to, and where an edition added a mode of its own, the gallery bundle fetches that
         // edition's enhancement on the first click of a gallery that needs it. Shared code
         // names no file: the edition publishes where its enhancement lives.
-        $tmp = $this->layoutStyles(count($images));
+        $layoutCss = $this->layoutStyles(count($images));
 
-        $tmp .= '<ul
+        if ($layoutCss !== '') {
+            AssetLoader::addLayoutCss($layoutCss);
+        }
+
+        $tmp = '<ul
             id="' . esc_attr($this->domId()) . '"
             class="ghostlabs-serendipity ghostlabs-serendipity--gallery-loading' . $this->getAlignment() . $this->getMobileStackThumbnails() . '"
             data-lightbox="' . esc_attr($this->lightboxValue()) . '"
@@ -927,8 +932,9 @@ class Serendipity
 
         // The store has no prototype, and an entry is made only when the store does not
         // already own one: an identifier can still be `constructor` or `toString`.
-        $tmp .= '<script>
-            if( !window.GhostLabsSerendipityGallery || window.GhostLabsSerendipityGallery instanceof Node ) {
+        // It reaches the page through AssetLoader::addGalleryData(), inline before the gallery
+        // bundle — never as a script element in the markup (WordPress.org's review, 2026-10-27).
+        $script = 'if( !window.GhostLabsSerendipityGallery || window.GhostLabsSerendipityGallery instanceof Node ) {
                 window.GhostLabsSerendipityGallery = Object.create(null);
             }
 
@@ -936,22 +942,17 @@ class Serendipity
                 window.GhostLabsSerendipityGallery[' . $safeId . '] = {};
             }
 
-            window.GhostLabsSerendipityGallery[' . $safeId . ']["layoutData"] = ' . self::scriptJson($this->layoutPayload()) . ';
-        </script>';
+            window.GhostLabsSerendipityGallery[' . $safeId . ']["layoutData"] = ' . self::scriptJson($this->layoutPayload()) . ';';
 
         $lightbox = $this->lightbox();
 
         if ($lightbox instanceof LightboxModeInterface) {
-            $entries = '';
-
             foreach ($lightbox->store($this->attributes, $this->raw, $this->access) as $key => $value) {
-                $entries .= 'window.GhostLabsSerendipityGallery[' . $safeId . '][' . self::scriptJson((string) $key) . '] = ' . self::scriptJson($value) . ';';
-            }
-
-            if ($entries !== '') {
-                $tmp .= '<script>' . $entries . '</script>';
+                $script .= 'window.GhostLabsSerendipityGallery[' . $safeId . '][' . self::scriptJson((string) $key) . '] = ' . self::scriptJson($value) . ';';
             }
         }
+
+        AssetLoader::addGalleryData($script);
 
         return $tmp;
     }
